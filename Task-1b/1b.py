@@ -14,6 +14,7 @@ block_height = 8
 frame_width = 0
 frame_height = 0
 dct_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
+dct_matrix_tran = [[0 for x in range(block_width)] for y in range(block_height)]
 
 
 def read_input():
@@ -65,6 +66,15 @@ def calculate_dct_matrix():
                 dct_matrix[i - x_current][j - y_current] = 0.5 * math.cos(((2 * j + 1) * i * math.pi) / 16.0)
     print print_matrix(dct_matrix)
 
+    dct_matrix_transpose()
+    print_matrix(dct_matrix_tran)
+
+def dct_matrix_transpose():
+    global dct_matrix_tran
+    global dct_matrix
+    for i in range(len(dct_matrix)):
+        for j in range(len(dct_matrix[0])):
+            dct_matrix_tran[j][i] = dct_matrix[i][j]
 
 def DCT2D_Tranform(frame, frame_id):
     print "frame_id: " + str(frame_id)
@@ -130,10 +140,10 @@ def extract_frames():
 
     calculate_dct_matrix()
 
-    frame_id = 0
+    frame_id = 1
     while cap.isOpened():
         val, frame = cap.read()
-        if val is True:
+        if val is True and frame_id < 2:
             frame_id += 1
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
