@@ -28,7 +28,7 @@ def acceptInput():
     elif _platform == "win32":
         slash = '\\'
 
-    path.rstrip(slash)
+    path = path.rstrip(slash)
     path = path + slash
 
 
@@ -60,7 +60,7 @@ def extractFrames():
             frame_id += 1
             yuvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y,u,v = cv2.split(yuvImage)
-            DWT_2d_Transformation(y,frame_id)
+            DWT_2d_Transformation(y,frame_id) # Apply 2d-DWT Transformation
             # if frame_id == 1:
             #     cap.release()
         else:
@@ -82,23 +82,24 @@ def DWT_2d_Transformation(y_component, frame_id):
         sum_avg_values = []
         diff_avg_values = []
         for col in range(0,frame_width-1, 2):
-            sum_avg_values.append((np.float(y_component[row][col]) + np.float(y_component[row][col+1])) / 2)
-            diff_avg_values.append((np.float(y_component[row][col]) - np.float(y_component[row][col+1])) / 2)
+            sum_avg_values.append((np.float(y_component[row][col]) + np.float(y_component[row][col+1])) / 2) # Calculate sum averages
+            diff_avg_values.append((np.float(y_component[row][col]) - np.float(y_component[row][col+1])) / 2) # Calculate Difference averages
 
         output_row.append(sum_avg_values + diff_avg_values)
 
-    transformed_data = np.array(output_row,dtype=np.float)
-    transformed_data = transformed_data.transpose()
+    transformed_data = np.array(output_row,dtype=np.float) # an array to hold the transformed data after step-1 of 2D-DWT
+    transformed_data = transformed_data.transpose() # Transpose the matrix so that the averages are now again on the first half of the matrix to work on.
 
     # For every row, we calculate the average in sum and difference of every pair of values
-    for row in range(frame_height/2):
+    for row in range(frame_height/2): # we do it only on half the rows as averages are maintained only in this part
         transform_row = transformed_data[row]
         diff_avg_values = []
         index = 0
         for col in range(0,frame_width-1, 2):
-            transform_row[index] = (transform_row[col] + transform_row[col+1]) / 2
-            diff_avg_values.append((transform_row[col] - transform_row[col+1]) / 2)
+            transform_row[index] = (transform_row[col] + transform_row[col+1]) / 2 # sum averages
+            diff_avg_values.append((transform_row[col] - transform_row[col+1]) / 2) # difference averages
             index += 1
+        # Copy the remaining half of the rows as it is to the ndarray.
         for col in range(frame_width/2,frame_width):
             transform_row[col] = diff_avg_values[col-frame_width/2]
 
@@ -106,17 +107,18 @@ def DWT_2d_Transformation(y_component, frame_id):
     saveToFile(frame_id,transformed_data, num_components)
 
 
+# Zig Zag way of saving the data of a matrix.
 def saveToFile(frame_id,transformed_info, length):
 
     global outputFilePath
 
-    output_file = open(outputFilePath, 'a')
+    output_file = open(outputFilePath, 'a') # open the file
 
-    rows,cols = transformed_info.shape
+    rows,cols = transformed_info.shape # # of rows and columns
     index = 1
     turn = 0
     i = j = 0
-    while i < rows and j < cols and index <= length:
+    while i < rows and j < cols and index <= length: # Save the m(length) most significant values
         # print ("{0} -> ({1},{2})".format(transformed_info[i][j],i,j))
         stringToOutput = "{0},{1},{2} \n".format(frame_id,index,transformed_info[i][j])
         # print stringToOutput
@@ -145,6 +147,7 @@ def saveToFile(frame_id,transformed_info, length):
     output_file.close()
 
 
+# Print to console
 def logPrinter(message):
     print message
 
