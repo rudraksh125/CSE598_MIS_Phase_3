@@ -93,45 +93,6 @@ def DWT_2d_Transformation(frame):
     cols[:,x] = haar_1D(rows[:,x])
   return cols
 
-# def DWT_2d_Transformation(y_component, frame_id, frame_height, frame_width):
-#     # global frame_height
-#     # global frame_width
-#     global num_components
-#
-#     print frame_id
-#     # For every row, we calculate the average in sum and difference of every pair of values
-#     for row in range(frame_height):
-#         sum_avg_values = y_component[row]
-#         diff_avg_values = []
-#         index = 0
-#         for col in range(0,frame_width, 2):
-#             diff_avg_values.append((np.float(sum_avg_values[col]) - np.float(sum_avg_values[col+1])) / np.sqrt(2.)) # Calculate Difference averages
-#             sum_avg_values[index] = (np.float(sum_avg_values[col]) + np.float(sum_avg_values[col+1])) / np.sqrt(2.) # Calculate sum averages
-#             index += 1
-#
-#         for col in range(0,frame_width/2):
-#             sum_avg_values[index] = diff_avg_values[col]
-#             index += 1
-#
-#     y_component = y_component.transpose() # Transpose the matrix so that the averages are now again on the first half of the matrix to work on.
-#
-#     # For every row, we calculate the average in sum and difference of every pair of values
-#     for row in range(frame_height): # we do it only on half the rows as averages are maintained only in this part
-#         transform_row = y_component[row]
-#         diff_avg_values = []
-#         index = 0
-#         for col in range(0,frame_width, 2):
-#             diff_avg_values.append((np.float(transform_row[col]) - np.float(transform_row[col+1])) / np.sqrt(2.)) # difference averages
-#             transform_row[index] = (np.float(transform_row[col]) + np.float(transform_row[col+1])) / np.sqrt(2.) # sum averages
-#             index += 1
-#         # Copy the remaining half of the rows as it is to the ndarray.
-#         for col in range(frame_width/2,frame_width):
-#             transform_row[col] = diff_avg_values[col-frame_width/2]
-#
-#     y_component = y_component.transpose()
-#     # print y_component
-#     saveToFile(frame_id,y_component, num_components)
-
 
 # Zig Zag way of saving the data of a matrix.
 def saveToFile(frame_id,transformed_info, length):
