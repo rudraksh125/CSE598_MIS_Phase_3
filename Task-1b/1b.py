@@ -77,35 +77,44 @@ def dct_matrix_transpose():
             dct_matrix_tran[j][i] = dct_matrix[i][j]
 
 def DCT2D_Tranform(frame, frame_id):
-    print "frame_id: " + str(frame_id)
-    print_matrix(frame)
-    block_id = 1
-    block_x = 0
-    block_y = 0
-    list_block = []
-    x_current = 0
-    y_current = 0
-    block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
-    while block_x < frame_height:
-        while block_y < frame_width:
-            print "current block id: " + str(block_id)
-            for i in range(x_current, x_current + block_height):
-                if i < frame_height:
-                    for j in range(y_current, y_current + block_width):
-                        if j <frame_width:
-                            block_matrix[i-x_current][j-y_current] = frame[i][j]
-            print_matrix(block_matrix)
-            TA = matrixmult(dct_matrix, block_matrix)
-            result_matrix_block = matrixmult(TA, dct_matrix_tran)
-            print "frequency domain block:"
-            print_matrix(result_matrix_block)
-            print "\n"
-            block_y = block_y + block_width
-            y_current = block_y
-            block_id += 1
-        block_x = block_x + block_height
+    global output_file
+    with open(output_file,"wb") as f_output_file:
+        print "frame_id: " + str(frame_id)
+        print_matrix(frame)
+        block_id = 1
+        block_x = 0
         block_y = 0
-        x_current = block_x
+        list_block = []
+        x_current = 0
+        y_current = 0
+        block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
+        while block_x < frame_height:
+            while block_y < frame_width:
+                print "current block id: " + str(block_id)
+                for i in range(x_current, x_current + block_height):
+                    if i < frame_height:
+                        for j in range(y_current, y_current + block_width):
+                            if j <frame_width:
+                                block_matrix[i-x_current][j-y_current] = frame[i][j]
+                print_matrix(block_matrix)
+                TA = matrixmult(dct_matrix, block_matrix)
+                result_matrix_block = matrixmult(TA, dct_matrix_tran)
+                print "frequency domain block:"
+                print_matrix(result_matrix_block)
+                component_id = 1
+                for i in range(0,len(result_matrix_block)):
+                    for j in range(0, len(result_matrix_block[0])):
+                        value = str(result_matrix_block[i][j])
+                        f_output_file.write(str(frame_id)+","+str(block_id)+","+str(component_id)+","+str(value)+'\n')
+                        component_id += 1
+
+                print "\n"
+                block_y = block_y + block_width
+                y_current = block_y
+                block_id += 1
+            block_x = block_x + block_height
+            block_y = 0
+            x_current = block_x
 
 
 def matrixmult(A, B):
@@ -147,10 +156,10 @@ def extract_frames():
     while cap.isOpened():
         val, frame = cap.read()
         if val is True and frame_id < 2:
-            frame_id += 1
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
             DCT2D_Tranform(y, frame_id)
+            frame_id += 1
         else:
             cap.release()
 
