@@ -4,6 +4,7 @@ from sys import platform as _platform
 import cv2
 import time
 import math
+import operator
 
 input_file = ""
 input_video_filename = ""
@@ -15,7 +16,7 @@ frame_width = 0
 frame_height = 0
 dct_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
 dct_matrix_tran = [[0 for x in range(block_width)] for y in range(block_height)]
-
+top_n_components = []
 
 def read_input():
     global input_file
@@ -78,9 +79,15 @@ def dct_matrix_transpose():
 
 def DCT2D_Tranform(frame, frame_id):
     global output_file
-    with open(output_file,"wb") as f_output_file:
+    global top_n_components
+    global num_frequency_components
+
+    smallest_so_far = 0
+    smallest_so_far_index = 0
+    idx = 0
+    with open(output_file,"a") as f_output_file:
         print "frame_id: " + str(frame_id)
-        print_matrix(frame)
+        # print_matrix(frame)
         block_id = 1
         block_x = 0
         block_y = 0
@@ -90,25 +97,29 @@ def DCT2D_Tranform(frame, frame_id):
         block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
         while block_x < frame_height:
             while block_y < frame_width:
-                print "current block id: " + str(block_id)
+                # print "current block id: " + str(block_id)
                 for i in range(x_current, x_current + block_height):
                     if i < frame_height:
                         for j in range(y_current, y_current + block_width):
                             if j <frame_width:
                                 block_matrix[i-x_current][j-y_current] = frame[i][j]
-                print_matrix(block_matrix)
+                # print_matrix(block_matrix)
                 TA = matrixmult(dct_matrix, block_matrix)
                 result_matrix_block = matrixmult(TA, dct_matrix_tran)
-                print "frequency domain block:"
-                print_matrix(result_matrix_block)
+                # print "frequency domain block:"
+                # print_matrix(result_matrix_block)
                 component_id = 1
                 for i in range(0,len(result_matrix_block)):
                     for j in range(0, len(result_matrix_block[0])):
                         value = str(result_matrix_block[i][j])
-                        f_output_file.write(str(frame_id)+","+str(block_id)+","+str(component_id)+","+str(value)+'\n')
+                        tl = [frame_id, block_id,component_id,result_matrix_block[i][j]]
+                        line = str(frame_id)+","+str(block_id)+","+str(component_id)+","+str(value)
+                        # f_output_file.write(line +'\n')
                         component_id += 1
-
-                print "\n"
+                        if i ==0 and j==0:
+                            top_n_components[idx] = tl
+                            idx += 1
+                # print "\n"
                 block_y = block_y + block_width
                 y_current = block_y
                 block_id += 1
@@ -116,6 +127,15 @@ def DCT2D_Tranform(frame, frame_id):
             block_y = 0
             x_current = block_x
 
+        # print "all DC components"
+        # for v in top_n_components:
+        #     print v
+
+        # print "top n compenents"
+        top_n = sorted(top_n_components, key=operator.itemgetter(3), reverse=True)
+        for v in range(num_frequency_components):
+            # print top_n[v]
+            f_output_file.write(str(top_n[v]) +'\n')
 
 def matrixmult(A, B):
     rows_A = len(A)
@@ -137,6 +157,15 @@ def matrixmult(A, B):
                 C[i][j] += A[i][k] * B[k][j]
     return C
 
+def init_list_top_n():
+    global top_n_components
+    global frame_height
+    global frame_width
+    global block_width
+    global block_height
+    max_num_comp = (frame_height * frame_width) / (block_width * block_height)
+    top_n_components = [0 for x in range(max_num_comp)]
+    print len(top_n_components)
 
 def extract_frames():
     global input_file
@@ -151,17 +180,19 @@ def extract_frames():
     print frame_height, frame_width, frame_count
 
     calculate_dct_matrix()
+    init_list_top_n()
 
     frame_id = 1
     while cap.isOpened():
         val, frame = cap.read()
-        if val is True and frame_id < 2:
+        if val is True:
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
             DCT2D_Tranform(y, frame_id)
             frame_id += 1
         else:
             cap.release()
+
 
 
 def main():
