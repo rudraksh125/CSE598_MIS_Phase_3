@@ -95,6 +95,10 @@ def DCT2D_Tranform(frame, frame_id):
                         if j <frame_width:
                             block_matrix[i-x_current][j-y_current] = frame[i][j]
             print_matrix(block_matrix)
+            TA = matrixmult(dct_matrix, block_matrix)
+            result_matrix_block = matrixmult(TA, dct_matrix_tran)
+            print "frequency domain block:"
+            print_matrix(result_matrix_block)
             print "\n"
             block_y = block_y + block_width
             y_current = block_y
@@ -117,7 +121,6 @@ def matrixmult(A, B):
     # Create the result matrix
     # Dimensions would be rows_A x cols_B
     C = [[0 for row in range(cols_B)] for col in range(rows_A)]
-    print C
 
     for i in range(rows_A):
         for j in range(cols_B):
