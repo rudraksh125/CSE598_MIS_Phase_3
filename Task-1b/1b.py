@@ -2,9 +2,7 @@ __author__ = 'kvivekan'
 
 from sys import platform as _platform
 import cv2
-import time
 import math
-import operator
 
 input_file = ""
 input_video_filename = ""
@@ -103,19 +101,17 @@ def calculate_dct_matrix():
     global block_height
     global dct_matrix
 
-    x_current = 0
-    y_current = 0
-
-    for i in range(x_current, x_current + block_height):
-        for j in range(y_current, y_current + block_width):
+    for i in range(block_height):
+        for j in range(block_width):
             if i == 0:
-                dct_matrix[i - x_current][j - y_current] = 1.0 / 2 * math.sqrt(2)
+                dct_matrix[i][j] = 1.0 / (2 * math.sqrt(2))
             else:
-                dct_matrix[i - x_current][j - y_current] = 0.5 * math.cos(((2 * j + 1) * i * math.pi) / 16.0)
-    #print_matrix(dct_matrix)
+                dct_matrix[i][j] = 0.5 * math.cos(((((2.0 * j) + 1.0) * i * math.pi) / 16.0))
+    print_matrix(dct_matrix)
 
     dct_matrix_transpose()
-    # print_matrix(dct_matrix_tran)
+    print "inverse:"
+    print_matrix(dct_matrix_tran)
 
 def dct_matrix_transpose():
     global dct_matrix_tran
@@ -129,9 +125,6 @@ def DCT2D_Tranform(frame, frame_id):
     global top_n_components
     global num_frequency_components
 
-    smallest_so_far = 0
-    smallest_so_far_index = 0
-    idx = 0
     with open(output_file,"wb") as f_output_file:
         print "frame_id: " + str(frame_id)
         print_matrix(frame)
@@ -164,6 +157,12 @@ def DCT2D_Tranform(frame, frame_id):
             block_x = block_x + block_height
             block_y = 0
             x_current = block_x
+
+def convert_to_int_matrix(mat):
+    for i in range(len(mat)):
+        for j in range(len(mat[0])):
+            mat[i][j] = int(mat[i][j])
+    return mat
 
 def IDCT2D_Tranform(frame, frame_id):
     global output_file
@@ -299,7 +298,7 @@ def matrixmult(A, B):
     cols_B = len(B[0])
 
     if cols_A != rows_B:
-        print "Cannot multiply the two matrices. Incorrect dimensions."
+        print "Cannot multiply, dimensions incorrect"
         return
 
     C = [[0 for row in range(cols_B)] for col in range(rows_A)]
@@ -339,12 +338,14 @@ def extract_frames():
     while cap.isOpened() and frame_id < 2:
         val, frame = cap.read()
         if val is True:
+            f = '{:04}'.format(frame_id)
+            nameBGR = "BGRframe"+f+".jpg"
+            cv2.imwrite(nameBGR, frame)
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
-            f = '{:04}'.format(frame_id)
-            name = "YUVframe"+f+".jpg"
+            nameYUV = "YUVframe"+f+".jpg"
             # yframes = cv2.cvtColor(ff, cv2.COLOR_YUV2BGR)
-            cv2.imwrite(name, y)
+            cv2.imwrite(nameYUV, y)
             DCT2D_Tranform(y, frame_id)
             frame_id += 1
         else:
@@ -353,8 +354,7 @@ def extract_frames():
 
 
 def main():
-    # block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
-    # zigzag(0,0,8,8,block_matrix,64,1,1)
+
     read_input()
     extract_frames()
     print "\n\n\n\n recreated:\n\n\n"
@@ -362,8 +362,8 @@ def main():
     print_matrix(freq_frame)
     IDCT2D_Tranform(freq_frame,1)
     spacial_frame = recreate_frame(1, output_file+"_idct")
-    print  "\n\n\n\n spacial recreated:\n\n\n"
-    print_matrix(spacial_frame)
-
+    print "\n\n\n\n spacial recreated:\n\n\n"
+    int_sp_frame = convert_to_int_matrix(spacial_frame)
+    print_matrix(int_sp_frame)
 
 main()
