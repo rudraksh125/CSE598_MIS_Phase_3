@@ -12,11 +12,12 @@ output_file = ""
 num_frequency_components = 0
 block_width = 8
 block_height = 8
-frame_width = 0
-frame_height = 0
+frame_width = 64
+frame_height = 64
 dct_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
 dct_matrix_tran = [[0 for x in range(block_width)] for y in range(block_height)]
 top_n_components = []
+freq_comp_id_coord = {}
 
 def read_input():
     global input_file
@@ -42,13 +43,59 @@ def read_input():
     input_file = path
     output_file = "{0}_blockdct_{1}.bct".format(input_video_filename, num_frequency_components)
 
+def recreate_frame(frame_id, filename):
+     with open(filename,"r") as f:
+        frame = [[0 for x in range(frame_width)] for y in range(frame_height)]
+        for line in f:
+            if int(line.split(",")[0]) == frame_id:
+                set_frame_value_by_line(frame, line)
+        return frame
+
+def recreate_frames(filename):
+    with open(filename,"r") as f:
+        list_frames = []
+        current_frame_id = 1
+        frame = [[0 for x in range(frame_width)] for y in range(frame_height)]
+        for line in f:
+            if int(line.split(",")[0]) == current_frame_id:
+                set_frame_value_by_line(frame, line)
+            else:
+                list_frames.append(frame)
+                current_frame_id += 1
+                frame = [[0 for x in range(frame_width)] for y in range(frame_height)]
+                set_frame_value_by_line(frame, line)
+        return list_frames
+
+def set_frame_value_by_line(frame, line):
+    l = line.split(",")
+    frame_id = int(l[0])
+    block_id = int(l[1])
+    comp_id = int(l[2])
+    value = float(l[3])
+    frame_x, frame_y = get_freq_comp_block_byid(block_id, comp_id)
+    # print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y)
+    frame[frame_y][frame_x] = value
+
+#block id
+def get_freq_comp_block_byid(block_id, comp_id):
+    block_x = block_id % block_width
+    block_y = block_id / block_width
+    frame_x,frame_y = get_freq_comp_frame_byid(block_x,block_y, comp_id)
+    return frame_x, frame_y
+
+#comp_id
+def get_freq_comp_frame_byid(block_x, block_y, comp_id):
+    coord = get_freqcomp_coord_byid(comp_id)
+    frame_x = block_width * block_x + coord[0]
+    frame_y = block_height * block_y + coord[1]
+    return frame_x, frame_y
+
+def get_freqcomp_coord_byid(comp_id):
+    return freq_comp_id_coord[comp_id]
 
 def print_matrix(matrix):
-    s = [[str(e) for e in row] for row in matrix]
-    lens = [max(map(len, col)) for col in zip(*s)]
-    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-    table = [fmt.format(*row) for row in s]
-    print '\n'.join(table)
+    print('\n'.join([''.join(['{:15}'.format(item) for item in row])
+      for row in matrix]))
 
 
 def calculate_dct_matrix():
@@ -65,10 +112,10 @@ def calculate_dct_matrix():
                 dct_matrix[i - x_current][j - y_current] = 1.0 / 2 * math.sqrt(2)
             else:
                 dct_matrix[i - x_current][j - y_current] = 0.5 * math.cos(((2 * j + 1) * i * math.pi) / 16.0)
-    print print_matrix(dct_matrix)
+    #print_matrix(dct_matrix)
 
     dct_matrix_transpose()
-    print_matrix(dct_matrix_tran)
+    # print_matrix(dct_matrix_tran)
 
 def dct_matrix_transpose():
     global dct_matrix_tran
@@ -85,13 +132,12 @@ def DCT2D_Tranform(frame, frame_id):
     smallest_so_far = 0
     smallest_so_far_index = 0
     idx = 0
-    with open(output_file,"a") as f_output_file:
+    with open(output_file,"wb") as f_output_file:
         print "frame_id: " + str(frame_id)
-        # print_matrix(frame)
-        block_id = 1
+        print_matrix(frame)
+        block_id = 0
         block_x = 0
         block_y = 0
-        list_block = []
         x_current = 0
         y_current = 0
         block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
@@ -108,18 +154,10 @@ def DCT2D_Tranform(frame, frame_id):
                 result_matrix_block = matrixmult(TA, dct_matrix_tran)
                 # print "frequency domain block:"
                 # print_matrix(result_matrix_block)
-                component_id = 1
-                for i in range(0,len(result_matrix_block)):
-                    for j in range(0, len(result_matrix_block[0])):
-                        value = str(result_matrix_block[i][j])
-                        tl = [frame_id, block_id,component_id,result_matrix_block[i][j]]
-                        line = str(frame_id)+","+str(block_id)+","+str(component_id)+","+str(value)
-                        # f_output_file.write(line +'\n')
-                        component_id += 1
-                        if i ==0 and j==0:
-                            top_n_components[idx] = tl
-                            idx += 1
-                # print "\n"
+                lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
+                for line in lines[:num_frequency_components]:
+                    f_output_file.write(line +'\n')
+
                 block_y = block_y + block_width
                 y_current = block_y
                 block_id += 1
@@ -127,15 +165,93 @@ def DCT2D_Tranform(frame, frame_id):
             block_y = 0
             x_current = block_x
 
-        # print "all DC components"
-        # for v in top_n_components:
-        #     print v
+def converttostrline(f,b,c,v):
+    l = str(f) + "," + str(b) + "," + str(c) + "," + str(v)
+    return l
 
-        # print "top n compenents"
-        top_n = sorted(top_n_components, key=operator.itemgetter(3), reverse=True)
-        for v in range(num_frequency_components):
-            # print top_n[v]
-            f_output_file.write(str(top_n[v]) +'\n')
+def getlistelement(block, x,y):
+    return block[y][x]
+
+def zigzag(x,y,height,width,block,n, frameid, blockid):
+    lines = []
+    global freq_comp_id_coord
+    current_x = x
+    current_y = y
+    comp_id = 0
+    #printstr(current_x), str(current_y)
+    freq_comp_id_coord[comp_id]= [current_x,current_y]
+    l = converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y))
+    lines.append(l)
+    comp_id += 1
+    while current_x <width and current_y<height:
+        if current_x==0 and current_y == height -1:
+            break;
+        current_x += 1
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        comp_id += 1
+        if current_y == 0:
+            while current_x > 0:
+                current_x -= 1
+                current_y += 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                comp_id += 1
+            if current_y != height - 1:
+                current_y += 1
+            else:
+                continue
+            #printstr(current_x), str(current_y)
+            freq_comp_id_coord[comp_id] = [current_x,current_y]
+            lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+            comp_id += 1
+            while current_y > 0:
+                current_x += 1
+                current_y -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                comp_id += 1
+
+    while current_x <width and current_y<height:
+        current_x += 1
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        comp_id += 1
+        while current_x < width:
+            current_x += 1
+            if current_x < width:
+                current_y -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                comp_id += 1
+
+        current_x -= 1
+        if current_y != height - 1:
+            current_y += 1
+        else:
+             break
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        comp_id += 1
+
+        while current_y < height:
+            current_y += 1
+            if current_y < height:
+                current_x -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                comp_id += 1
+        current_y -= 1
+    #printfreq_comp_id_coord
+    return lines
+
 
 def matrixmult(A, B):
     rows_A = len(A)
@@ -147,8 +263,6 @@ def matrixmult(A, B):
         print "Cannot multiply the two matrices. Incorrect dimensions."
         return
 
-    # Create the result matrix
-    # Dimensions would be rows_A x cols_B
     C = [[0 for row in range(cols_B)] for col in range(rows_A)]
 
     for i in range(rows_A):
@@ -165,7 +279,7 @@ def init_list_top_n():
     global block_height
     max_num_comp = (frame_height * frame_width) / (block_width * block_height)
     top_n_components = [0 for x in range(max_num_comp)]
-    print len(top_n_components)
+    #printlen(top_n_components)
 
 def extract_frames():
     global input_file
@@ -183,7 +297,7 @@ def extract_frames():
     init_list_top_n()
 
     frame_id = 1
-    while cap.isOpened():
+    while cap.isOpened() and frame_id < 2:
         val, frame = cap.read()
         if val is True:
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
@@ -196,8 +310,13 @@ def extract_frames():
 
 
 def main():
+    # block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
+    # zigzag(0,0,8,8,block_matrix,64,1,1)
     read_input()
     extract_frames()
+    print "\n\n\n\n recreated:\n\n\n"
+    frame = recreate_frame(1, output_file)
+    print_matrix(frame)
 
 
 main()
