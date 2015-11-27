@@ -165,6 +165,45 @@ def DCT2D_Tranform(frame, frame_id):
             block_y = 0
             x_current = block_x
 
+def IDCT2D_Tranform(frame, frame_id):
+    global output_file
+    global top_n_components
+    global num_frequency_components
+
+    with open(output_file+"_idct","wb") as f_output_file:
+        print "frame_id: " + str(frame_id)
+        print_matrix(frame)
+        block_id = 0
+        block_x = 0
+        block_y = 0
+        x_current = 0
+        y_current = 0
+        block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
+        while block_x < frame_height:
+            while block_y < frame_width:
+                # print "current block id: " + str(block_id)
+                for i in range(x_current, x_current + block_height):
+                    if i < frame_height:
+                        for j in range(y_current, y_current + block_width):
+                            if j <frame_width:
+                                block_matrix[i-x_current][j-y_current] = frame[i][j]
+                # print_matrix(block_matrix)
+                TA = matrixmult(dct_matrix_tran, block_matrix)
+                result_matrix_block = matrixmult(TA, dct_matrix)
+                # print "frequency domain block:"
+                # print_matrix(result_matrix_block)
+                lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
+                for line in lines[:num_frequency_components]:
+                    f_output_file.write(line +'\n')
+
+                block_y = block_y + block_width
+                y_current = block_y
+                block_id += 1
+            block_x = block_x + block_height
+            block_y = 0
+            x_current = block_x
+
+
 def converttostrline(f,b,c,v):
     l = str(f) + "," + str(b) + "," + str(c) + "," + str(v)
     return l
@@ -302,6 +341,10 @@ def extract_frames():
         if val is True:
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
+            f = '{:04}'.format(frame_id)
+            name = "YUVframe"+f+".jpg"
+            # yframes = cv2.cvtColor(ff, cv2.COLOR_YUV2BGR)
+            cv2.imwrite(name, y)
             DCT2D_Tranform(y, frame_id)
             frame_id += 1
         else:
@@ -315,8 +358,12 @@ def main():
     read_input()
     extract_frames()
     print "\n\n\n\n recreated:\n\n\n"
-    frame = recreate_frame(1, output_file)
-    print_matrix(frame)
+    freq_frame = recreate_frame(1, output_file)
+    print_matrix(freq_frame)
+    IDCT2D_Tranform(freq_frame,1)
+    spacial_frame = recreate_frame(1, output_file+"_idct")
+    print  "\n\n\n\n spacial recreated:\n\n\n"
+    print_matrix(spacial_frame)
 
 
 main()
