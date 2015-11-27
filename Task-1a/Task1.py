@@ -7,7 +7,6 @@ def Quantizing(cap, bits, filename):
     outfile = open("{0}_hist_{1}.hst".format(filename.split(".")[0], bits),'w')
     hist_pieces = int(pow(2, bits))
     interval = 255.0/hist_pieces
-    print interval
     hist_value = []
     for i in range(0, hist_pieces):
         hist_value.append(int(interval*i+interval/2.0))
@@ -20,8 +19,6 @@ def Quantizing(cap, bits, filename):
             rows, cols = yuv.shape
             block_row = int(rows/8)
             block_col = int(cols/8)
-            print block_row
-            print block_col
             for i in range(0, block_row):
                 for j in range(0, block_col):
                     gray_instance = []
