@@ -6,6 +6,12 @@ import math
 from itertools import izip
 import operator
 import numpy
+import os
+import re
+from PIL import Image
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import time
 
 task_3_input_video_file = ""
 task_1_input_bct_file = ""
@@ -165,7 +171,7 @@ def read_input():
 
     DCT2D_Tranform(frame_id_bct_filename, frame,frame_id,block_height,block_width)
 
-    compare(task_1_input_bct_file, frame_id_bct_filename)
+    compare(task_1_input_bct_file, frame_id_bct_filename, frame_id_filename)
 
 def set_frame_value_by_line(frame, line):
     l = line.split(",")
@@ -264,7 +270,7 @@ def recreate_frames(filename):
                 set_frame_value_by_line(frame, line)
         return list_frames
 
-def compare(task_1_input_bct_file, frame_id_bct_filename):
+def compare(task_1_input_bct_file, frame_id_bct_filename, frame_id_filename):
     global frame_id
     input_frame = recreate_frame(frame_id, frame_id_bct_filename)
     IDCT2D_Tranform("input._idct",input_frame,frame_id)
@@ -286,13 +292,40 @@ def compare(task_1_input_bct_file, frame_id_bct_filename):
         count += 1
 
     sorted_frames = sorted(all_similar_frames, key=lambda k: all_similar_frames[k][1])
+    labels = [['original'+ str(frame_id), ""]]
     n = 1
     for k in sorted_frames[:11]:
         print all_similar_frames[k]
         filename = all_similar_frames[k][0]
         spacial_target_frame = recreate_frame(k, filename)
-        save_frame_tofile(str(n)+"_recreated.jpg", numpy.array(spacial_target_frame,dtype=numpy.uint8))
+        filename = str(n).zfill(2) +"_" +str(k) +"_recreated.jpg"
+        labels.append([str(k), str(format(all_similar_frames[k][1],'.3f'))])
+        save_frame_tofile(filename, numpy.array(spacial_target_frame,dtype=numpy.uint8))
         n += 1
+
+    display_image_grid(labels, frame_id_filename)
+
+def display_image_grid(labels, frame_id_filename):
+    images = [Image.open(frame_id_filename)]
+    files = [f for f in os.listdir('.') if re.match(r'[0-9]+_[0-9]+_recreated.*\.jpg', f)]
+    for  f in files:
+        images.append(Image.open(f))
+
+    num_rows = 3
+    num_cols = 5
+
+    gs = gridspec.GridSpec(num_rows, num_cols, wspace=0.2)
+    ax = [plt.subplot(gs[i]) for i in range(len(images))]
+    gs.update(hspace=0)
+
+    for i,im in enumerate(images):
+        ax[i].imshow(im)
+        ax[i].axis('off')
+        ax[i].set_title(labels[i])
+
+    plt.savefig('top_n_dct_grid.png')
+    plt.show()
+    time.sleep(2)
 
 def save_frame_tofile(name, frame):
     yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
@@ -316,7 +349,8 @@ def extract_save_frame(frame_id, frame_id_filename):
             if val is True:
                 yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
                 yframe, u, v = cv2.split(yuv_image)
-                cv2.imwrite(frame_id_filename, yframe)
+                save_frame_tofile(frame_id_filename, numpy.array(yframe,dtype=numpy.uint8))
+                cv2.imwrite(frame_id_filename +"_test", yframe)
                 cap.release()
                 break
         else:
