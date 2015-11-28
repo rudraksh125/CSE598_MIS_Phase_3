@@ -3,6 +3,7 @@ __author__ = 'kvivekan'
 from sys import platform as _platform
 import cv2
 import math
+import numpy
 
 input_file = ""
 input_video_filename = ""
@@ -10,8 +11,8 @@ output_file = ""
 num_frequency_components = 0
 block_width = 8
 block_height = 8
-frame_width = 64
-frame_height = 64
+frame_width = 512
+frame_height = 512
 dct_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
 dct_matrix_tran = [[0 for x in range(block_width)] for y in range(block_height)]
 top_n_components = []
@@ -70,14 +71,18 @@ def set_frame_value_by_line(frame, line):
     block_id = int(l[1])
     comp_id = int(l[2])
     value = float(l[3])
+    if block_id == 512:
+        print "block 512"
     frame_x, frame_y = get_freq_comp_block_byid(block_id, comp_id)
-    # print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y)
+
+    print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y) + " with value: " + str(value)
     frame[frame_y][frame_x] = value
 
 #block id
 def get_freq_comp_block_byid(block_id, comp_id):
-    block_x = block_id % block_width
-    block_y = block_id / block_width
+    block_x = block_id % (frame_width / block_width)
+    # block_y = block_id / block_width
+    block_y = block_id / (frame_width / block_width)
     frame_x,frame_y = get_freq_comp_frame_byid(block_x,block_y, comp_id)
     return frame_x, frame_y
 
@@ -136,17 +141,17 @@ def DCT2D_Tranform(frame, frame_id):
         block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
         while block_x < frame_height:
             while block_y < frame_width:
-                # print "current block id: " + str(block_id)
+                #print "current block id: " + str(block_id)
                 for i in range(x_current, x_current + block_height):
                     if i < frame_height:
                         for j in range(y_current, y_current + block_width):
                             if j <frame_width:
                                 block_matrix[i-x_current][j-y_current] = frame[i][j]
-                # print_matrix(block_matrix)
+                #print_matrix(block_matrix)
                 TA = matrixmult(dct_matrix, block_matrix)
                 result_matrix_block = matrixmult(TA, dct_matrix_tran)
-                # print "frequency domain block:"
-                # print_matrix(result_matrix_block)
+                #print "frequency domain block:"
+                #print_matrix(result_matrix_block)
                 lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
                 for line in lines[:num_frequency_components]:
                     f_output_file.write(line +'\n')
@@ -180,17 +185,17 @@ def IDCT2D_Tranform(frame, frame_id):
         block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
         while block_x < frame_height:
             while block_y < frame_width:
-                # print "current block id: " + str(block_id)
+                print "current block id: " + str(block_id)
                 for i in range(x_current, x_current + block_height):
                     if i < frame_height:
                         for j in range(y_current, y_current + block_width):
                             if j <frame_width:
                                 block_matrix[i-x_current][j-y_current] = frame[i][j]
-                # print_matrix(block_matrix)
+                print_matrix(block_matrix)
                 TA = matrixmult(dct_matrix_tran, block_matrix)
                 result_matrix_block = matrixmult(TA, dct_matrix)
-                # print "frequency domain block:"
-                # print_matrix(result_matrix_block)
+                print "frequency domain block:"
+                print_matrix(result_matrix_block)
                 lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
                 for line in lines[:num_frequency_components]:
                     f_output_file.write(line +'\n')
@@ -344,26 +349,68 @@ def extract_frames():
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
             nameYUV = "YUVframe"+f+".jpg"
-            # yframes = cv2.cvtColor(ff, cv2.COLOR_YUV2BGR)
+            # yframes = cv2.cvtColor(y, cv2.COLOR_YUV2BGR)
             cv2.imwrite(nameYUV, y)
             DCT2D_Tranform(y, frame_id)
             frame_id += 1
         else:
             cap.release()
 
+def save_frame_tofile(name, frame):
+    yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    cv2.imwrite(name, yframes)
+
+def test():
+    global input_file
+    global output_file
+    global num_frequency_components
+    global input_video_filename
+    global frame_width
+    global frame_height
 
 
-def main():
+    input_file = "lenna.png"
 
-    read_input()
-    extract_frames()
+    num_frequency_components = 5
+    # input_file = "BGRframe0001.jpg"
+    output_file = input_file + "_" + str(num_frequency_components) +"_output.bct"
+
+
+    input_video_filename = "lenna"
+
+    calculate_dct_matrix()
+    init_list_top_n()
+
+    ff = cv2.imread(input_file)
+
+
+    frame_height, frame_width, frame_channels = ff.shape
+
+    yuv_image = cv2.cvtColor(ff, cv2.COLOR_BGR2YUV)
+    y, u, v = cv2.split(yuv_image)
+    DCT2D_Tranform(y, 1)
+
     print "\n\n\n\n recreated:\n\n\n"
     freq_frame = recreate_frame(1, output_file)
     print_matrix(freq_frame)
     IDCT2D_Tranform(freq_frame,1)
     spacial_frame = recreate_frame(1, output_file+"_idct")
+
+
+    print "\n\nfloat:"
+    print_matrix(spacial_frame)
     print "\n\n\n\n spacial recreated:\n\n\n"
     int_sp_frame = convert_to_int_matrix(spacial_frame)
     print_matrix(int_sp_frame)
+    save_frame_tofile(output_file+"recreated_" +str(num_frequency_components)+".jpg", numpy.array(int_sp_frame,dtype=numpy.uint8))
+
+def main():
+
+    read_input()
+    extract_frames()
+    #test()
+
+
+
 
 main()
