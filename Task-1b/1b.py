@@ -71,8 +71,7 @@ def set_frame_value_by_line(frame, line):
     block_id = int(l[1])
     comp_id = int(l[2])
     value = float(l[3])
-    if block_id == 512:
-        print "block 512"
+
     frame_x, frame_y = get_freq_comp_block_byid(block_id, comp_id)
 
     # print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y) + " with value: " + str(value)
@@ -112,11 +111,11 @@ def calculate_dct_matrix():
                 dct_matrix[i][j] = 1.0 / (2 * math.sqrt(2))
             else:
                 dct_matrix[i][j] = 0.5 * math.cos(((((2.0 * j) + 1.0) * i * math.pi) / 16.0))
-    print_matrix(dct_matrix)
+    # print_matrix(dct_matrix)
 
     dct_matrix_transpose()
-    print "inverse:"
-    print_matrix(dct_matrix_tran)
+    # print "inverse:"
+    # print_matrix(dct_matrix_tran)
 
 def dct_matrix_transpose():
     global dct_matrix_tran
@@ -147,7 +146,7 @@ def DCT2D_Tranform(frame, frame_id):
                         for j in range(y_current, y_current + block_width):
                             if j <frame_width:
                                 block_matrix[i-x_current][j-y_current] = frame[i][j]
-                #print_matrix(block_matrix)
+                #print_matrix(block_matix)
                 TA = matrixmult(dct_matrix, block_matrix)
                 result_matrix_block = matrixmult(TA, dct_matrix_tran)
                 #print "frequency domain block:"
@@ -185,7 +184,7 @@ def IDCT2D_Tranform(frame, frame_id):
         block_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
         while block_x < frame_height:
             while block_y < frame_width:
-                print "current block id: " + str(block_id)
+                # print "current block id: " + str(block_id)
                 for i in range(x_current, x_current + block_height):
                     if i < frame_height:
                         for j in range(y_current, y_current + block_width):
@@ -369,7 +368,7 @@ def test(num_comp):
     global frame_height
 
 
-    input_file = "lenna.png"
+    input_file = "sample_output/lenna.png"
 
     num_frequency_components = num_comp
     # input_file = "BGRframe0001.jpg"
