@@ -75,7 +75,7 @@ def set_frame_value_by_line(frame, line):
         print "block 512"
     frame_x, frame_y = get_freq_comp_block_byid(block_id, comp_id)
 
-    print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y) + " with value: " + str(value)
+    # print "about to set block id : "+ str(block_id) +", " +" comp id: "+ str(comp_id) +", " + str(frame_x) + "," + str(frame_y) + " with value: " + str(value)
     frame[frame_y][frame_x] = value
 
 #block id
@@ -132,7 +132,7 @@ def DCT2D_Tranform(frame, frame_id):
 
     with open(output_file,"wb") as f_output_file:
         print "frame_id: " + str(frame_id)
-        print_matrix(frame)
+        # print_matrix(frame)
         block_id = 0
         block_x = 0
         block_y = 0
@@ -176,7 +176,7 @@ def IDCT2D_Tranform(frame, frame_id):
 
     with open(output_file+"_idct","wb") as f_output_file:
         print "frame_id: " + str(frame_id)
-        print_matrix(frame)
+        # print_matrix(frame)
         block_id = 0
         block_x = 0
         block_y = 0
@@ -191,11 +191,11 @@ def IDCT2D_Tranform(frame, frame_id):
                         for j in range(y_current, y_current + block_width):
                             if j <frame_width:
                                 block_matrix[i-x_current][j-y_current] = frame[i][j]
-                print_matrix(block_matrix)
+                # print_matrix(block_matrix)
                 TA = matrixmult(dct_matrix_tran, block_matrix)
                 result_matrix_block = matrixmult(TA, dct_matrix)
-                print "frequency domain block:"
-                print_matrix(result_matrix_block)
+                # print "frequency domain block:"
+                # print_matrix(result_matrix_block)
                 lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
                 for line in lines[:num_frequency_components]:
                     f_output_file.write(line +'\n')
@@ -360,7 +360,7 @@ def save_frame_tofile(name, frame):
     yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
     cv2.imwrite(name, yframes)
 
-def test():
+def test(num_comp):
     global input_file
     global output_file
     global num_frequency_components
@@ -371,7 +371,7 @@ def test():
 
     input_file = "lenna.png"
 
-    num_frequency_components = 5
+    num_frequency_components = num_comp
     # input_file = "BGRframe0001.jpg"
     output_file = input_file + "_" + str(num_frequency_components) +"_output.bct"
 
@@ -392,25 +392,26 @@ def test():
 
     print "\n\n\n\n recreated:\n\n\n"
     freq_frame = recreate_frame(1, output_file)
-    print_matrix(freq_frame)
+    # print_matrix(freq_frame)
     IDCT2D_Tranform(freq_frame,1)
     spacial_frame = recreate_frame(1, output_file+"_idct")
 
 
     print "\n\nfloat:"
-    print_matrix(spacial_frame)
+    # print_matrix(spacial_frame)
     print "\n\n\n\n spacial recreated:\n\n\n"
     int_sp_frame = convert_to_int_matrix(spacial_frame)
-    print_matrix(int_sp_frame)
+    # print_matrix(int_sp_frame)
     save_frame_tofile(output_file+"recreated_" +str(num_frequency_components)+".jpg", numpy.array(int_sp_frame,dtype=numpy.uint8))
 
 def main():
 
-    read_input()
-    extract_frames()
-    #test()
-
-
-
+    # read_input()
+    # extract_frames()
+    test(5)
+    test(10)
+    test(25)
+    test(50)
+    test(64)
 
 main()
