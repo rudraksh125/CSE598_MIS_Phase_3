@@ -4,6 +4,8 @@ from sys import platform as _platform
 import cv2
 import math
 from itertools import izip
+import operator
+import numpy
 
 task_3_input_video_file = ""
 task_1_input_bct_file = ""
@@ -159,7 +161,7 @@ def read_input():
 
     frame = extract_save_frame(frame_id, frame_id_filename)
 
-    frame_id_bct_filename = "{0}_blockdct_{1}.bct".format(input_video_filename, num_frequency_components)
+    frame_id_bct_filename = "{0}_blockdct_compare_{1}.bct".format(input_video_filename, num_frequency_components)
 
     DCT2D_Tranform(frame_id_bct_filename, frame,frame_id,block_height,block_width)
 
@@ -269,6 +271,8 @@ def compare(task_1_input_bct_file, frame_id_bct_filename):
     spacial_input_frame = recreate_frame(frame_id, "input._idct")
 
     target_frames = recreate_frames(task_1_input_bct_file)
+
+    all_similar_frames = {}
     count = 1
     for f in target_frames:
         IDCT2D_Tranform("target_"+str(count)+"._idct", f, count)
@@ -276,8 +280,23 @@ def compare(task_1_input_bct_file, frame_id_bct_filename):
         pairs = izip(spacial_input_frame, spacial_target_frame)
         dif = sum(abs(c1-c2) for p1,p2 in pairs for c1,c2 in zip(p1,p2))
         total_components = frame_height * frame_width
-        print "Difference (percentage) with frame "+ str(count) +":", (dif / 255.0 * 100) / total_components
+        score = (dif / 255.0 * 100) / total_components
+        print "Difference (percentage) with frame "+ str(count) +":", score
+        all_similar_frames[count] = ["target_"+str(count)+"._idct",score]
         count += 1
+
+    sorted_frames = sorted(all_similar_frames, key=lambda k: all_similar_frames[k][1])
+    n = 1
+    for k in sorted_frames[:11]:
+        print all_similar_frames[k]
+        filename = all_similar_frames[k][0]
+        spacial_target_frame = recreate_frame(k, filename)
+        save_frame_tofile(str(n)+"_recreated.jpg", numpy.array(spacial_target_frame,dtype=numpy.uint8))
+        n += 1
+
+def save_frame_tofile(name, frame):
+    yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    cv2.imwrite(name, yframes)
 
 def extract_save_frame(frame_id, frame_id_filename):
     cap = cv2.VideoCapture(task_3_input_video_file)

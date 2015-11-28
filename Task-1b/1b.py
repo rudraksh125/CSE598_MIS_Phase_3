@@ -344,21 +344,21 @@ def extract_frames():
     open(output_file, 'w').close()
 
     f_id = 1
-    while cap.isOpened() and f_id < 10:
+    while cap.isOpened():
         val, frame = cap.read()
         if val is True:
-            f = '{:04}'.format(f_id)
-            nameBGR = "BGRframe"+f+".jpg"
-            cv2.imwrite(nameBGR, frame)
+            # f = '{:04}'.format(f_id)
+            # nameBGR = "BGRframe"+f+".jpg"
+            # cv2.imwrite(nameBGR, frame)
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
-            nameYUV = "YUVframe"+f+".jpg"
-            # yframes = cv2.cvtColor(y, cv2.COLOR_YUV2BGR)
-            cv2.imwrite(nameYUV, y)
+            # nameYUV = "YUVframe"+f+".jpg"
+            # cv2.imwrite(nameYUV, y)
             DCT2D_Tranform(y, f_id)
             f_id += 1
         else:
             cap.release()
+    print "saved dct transform file: " + output_file
 
 def save_frame_tofile(name, frame):
     yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
