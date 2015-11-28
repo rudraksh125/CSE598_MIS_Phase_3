@@ -4,7 +4,6 @@ from sys import platform as _platform
 import cv2
 import math
 import numpy
-import scipy.spatial as sp
 from itertools import izip
 
 
@@ -329,6 +328,7 @@ def init_list_top_n():
 
 def extract_frames():
     global input_file
+    global output_file
     global frame_width
     global frame_height
 
@@ -341,6 +341,7 @@ def extract_frames():
 
     calculate_dct_matrix()
     init_list_top_n()
+    open(output_file, 'w').close()
 
     f_id = 1
     while cap.isOpened() and f_id < 10:
@@ -483,6 +484,12 @@ def unit_test():
     test(50)
     test(64)
 
+    similarity("R1_blockdct_25.bct","R1_blockdct_5.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_10.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_25.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_50.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_64.bct")
+
 def similarity(inputfile, targetfile):
     global output_file
     global num_frequency_components
@@ -500,10 +507,6 @@ def similarity(inputfile, targetfile):
     IDCT2D_Tranform(target_frame,1)
     spacial_target_frame = recreate_frame(1, output_file+"_idct")
 
-
-    # results2 = 1 - sp.distance.cdist(spacial_input_frame, spacial_target_frame, 'cosine')
-    # print results2
-
     pairs = izip(spacial_input_frame, spacial_target_frame)
     dif = sum(abs(c1-c2) for p1,p2 in pairs for c1,c2 in zip(p1,p2))
     ncomponents = 64 * 64 * 1
@@ -513,12 +516,7 @@ def main():
 
     read_input()
     extract_frames()
-    
     # unit_test()
-    # similarity("R1_blockdct_25.bct","R1_blockdct_5.bct")
-    # similarity("R1_blockdct_25.bct","R1_blockdct_10.bct")
-    # similarity("R1_blockdct_25.bct","R1_blockdct_25.bct")
-    # similarity("R1_blockdct_25.bct","R1_blockdct_50.bct")
-    # similarity("R1_blockdct_25.bct","R1_blockdct_64.bct")
+
 
 main()
