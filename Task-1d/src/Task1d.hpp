@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <string.h>
 
     //OpenCV libraries included
 #include "opencv2/highgui.hpp"
@@ -21,12 +22,14 @@
 
 using namespace std;
 
-int main()
-{
-   
-    cout << "You are awesome" << endl;
-    return 0;
-}
+
+string filename;
+
+    // currentBlock
+    // nextBlock
+
+
+
 
 
 
