@@ -368,14 +368,15 @@ def test(num_comp):
     global frame_height
 
 
-    input_file = "sample_output/lenna.png"
+    # input_file = "sample_output/lenna.png"
 
     num_frequency_components = num_comp
-    # input_file = "BGRframe0001.jpg"
+    input_file = "sample_output/BGRframe0001.jpg"
     output_file = input_file + "_" + str(num_frequency_components) +"_output.bct"
 
 
-    input_video_filename = "lenna"
+    # input_video_filename = "lenna"
+    input_video_filename = "BGRframe0001"
 
     calculate_dct_matrix()
     init_list_top_n()
@@ -403,14 +404,17 @@ def test(num_comp):
     # print_matrix(int_sp_frame)
     save_frame_tofile(output_file+"recreated_" +str(num_frequency_components)+".jpg", numpy.array(int_sp_frame,dtype=numpy.uint8))
 
-def main():
-
-    # read_input()
-    # extract_frames()
+def unit_test():
     test(5)
     test(10)
     test(25)
     test(50)
     test(64)
+
+def main():
+
+    read_input()
+    extract_frames()
+    # unit_test()
 
 main()
