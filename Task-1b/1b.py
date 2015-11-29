@@ -4,6 +4,8 @@ from sys import platform as _platform
 import cv2
 import math
 import numpy
+from itertools import izip
+
 
 input_file = ""
 input_video_filename = ""
@@ -11,8 +13,8 @@ output_file = ""
 num_frequency_components = 0
 block_width = 8
 block_height = 8
-frame_width = 512
-frame_height = 512
+frame_width = 64
+frame_height = 64
 dct_matrix = [[0 for x in range(block_width)] for y in range(block_height)]
 dct_matrix_tran = [[0 for x in range(block_width)] for y in range(block_height)]
 top_n_components = []
@@ -124,13 +126,13 @@ def dct_matrix_transpose():
         for j in range(len(dct_matrix[0])):
             dct_matrix_tran[j][i] = dct_matrix[i][j]
 
-def DCT2D_Tranform(frame, frame_id):
+def DCT2D_Tranform(frame, ff_id):
     global output_file
     global top_n_components
     global num_frequency_components
 
-    with open(output_file,"wb") as f_output_file:
-        print "frame_id: " + str(frame_id)
+    with open(output_file,"a") as f_output_file:
+        print "frame_id: " + str(ff_id)
         # print_matrix(frame)
         block_id = 0
         block_x = 0
@@ -151,9 +153,10 @@ def DCT2D_Tranform(frame, frame_id):
                 result_matrix_block = matrixmult(TA, dct_matrix_tran)
                 #print "frequency domain block:"
                 #print_matrix(result_matrix_block)
-                lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,frame_id,block_id)
+                lines = zigzag(0,0,block_height,block_width,result_matrix_block,num_frequency_components,ff_id,block_id)
                 for line in lines[:num_frequency_components]:
                     f_output_file.write(line +'\n')
+                f_output_file.flush()
 
                 block_y = block_y + block_width
                 y_current = block_y
@@ -214,7 +217,7 @@ def converttostrline(f,b,c,v):
 def getlistelement(block, x,y):
     return block[y][x]
 
-def zigzag(x,y,height,width,block,n, frameid, blockid):
+def zigzag(x,y,height,width,block,n, fff_id, blockid):
     lines = []
     global freq_comp_id_coord
     current_x = x
@@ -222,7 +225,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
     comp_id = 0
     #printstr(current_x), str(current_y)
     freq_comp_id_coord[comp_id]= [current_x,current_y]
-    l = converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y))
+    l = converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y))
     lines.append(l)
     comp_id += 1
     while current_x <width and current_y<height:
@@ -231,7 +234,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
         current_x += 1
         #printstr(current_x), str(current_y)
         freq_comp_id_coord[comp_id] = [current_x,current_y]
-        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
         comp_id += 1
         if current_y == 0:
             while current_x > 0:
@@ -239,7 +242,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
                 current_y += 1
                 #printstr(current_x), str(current_y)
                 freq_comp_id_coord[comp_id] = [current_x,current_y]
-                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
                 comp_id += 1
             if current_y != height - 1:
                 current_y += 1
@@ -247,21 +250,21 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
                 continue
             #printstr(current_x), str(current_y)
             freq_comp_id_coord[comp_id] = [current_x,current_y]
-            lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+            lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
             comp_id += 1
             while current_y > 0:
                 current_x += 1
                 current_y -= 1
                 #printstr(current_x), str(current_y)
                 freq_comp_id_coord[comp_id] = [current_x,current_y]
-                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
                 comp_id += 1
 
     while current_x <width and current_y<height:
         current_x += 1
         #printstr(current_x), str(current_y)
         freq_comp_id_coord[comp_id] = [current_x,current_y]
-        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
         comp_id += 1
         while current_x < width:
             current_x += 1
@@ -269,7 +272,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
                 current_y -= 1
                 #printstr(current_x), str(current_y)
                 freq_comp_id_coord[comp_id] = [current_x,current_y]
-                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
                 comp_id += 1
 
         current_x -= 1
@@ -279,7 +282,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
              break
         #printstr(current_x), str(current_y)
         freq_comp_id_coord[comp_id] = [current_x,current_y]
-        lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+        lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
         comp_id += 1
 
         while current_y < height:
@@ -288,7 +291,7 @@ def zigzag(x,y,height,width,block,n, frameid, blockid):
                 current_x -= 1
                 #printstr(current_x), str(current_y)
                 freq_comp_id_coord[comp_id] = [current_x,current_y]
-                lines.append(converttostrline(frameid,blockid,comp_id,getlistelement(block,current_x,current_y)))
+                lines.append(converttostrline(fff_id,blockid,comp_id,getlistelement(block,current_x,current_y)))
                 comp_id += 1
         current_y -= 1
     #printfreq_comp_id_coord
@@ -325,6 +328,7 @@ def init_list_top_n():
 
 def extract_frames():
     global input_file
+    global output_file
     global frame_width
     global frame_height
 
@@ -337,23 +341,24 @@ def extract_frames():
 
     calculate_dct_matrix()
     init_list_top_n()
+    open(output_file, 'w').close()
 
-    frame_id = 1
-    while cap.isOpened() and frame_id < 2:
+    f_id = 1
+    while cap.isOpened():
         val, frame = cap.read()
         if val is True:
-            f = '{:04}'.format(frame_id)
-            nameBGR = "BGRframe"+f+".jpg"
-            cv2.imwrite(nameBGR, frame)
+            # f = '{:04}'.format(f_id)
+            # nameBGR = "BGRframe"+f+".jpg"
+            # cv2.imwrite(nameBGR, frame)
             yuv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
             y, u, v = cv2.split(yuv_image)
-            nameYUV = "YUVframe"+f+".jpg"
-            # yframes = cv2.cvtColor(y, cv2.COLOR_YUV2BGR)
-            cv2.imwrite(nameYUV, y)
-            DCT2D_Tranform(y, frame_id)
-            frame_id += 1
+            # nameYUV = "YUVframe"+f+".jpg"
+            # cv2.imwrite(nameYUV, y)
+            DCT2D_Tranform(y, f_id)
+            f_id += 1
         else:
             cap.release()
+    print "saved dct transform file: " + output_file
 
 def save_frame_tofile(name, frame):
     yframes = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
@@ -404,6 +409,74 @@ def test(num_comp):
     # print_matrix(int_sp_frame)
     save_frame_tofile(output_file+"recreated_" +str(num_frequency_components)+".jpg", numpy.array(int_sp_frame,dtype=numpy.uint8))
 
+def init_freq_coord_zigzag(height,width):
+    global freq_comp_id_coord
+    current_x = 0
+    current_y = 0
+    comp_id = 0
+    #printstr(current_x), str(current_y)
+    freq_comp_id_coord[comp_id]= [current_x,current_y]
+    comp_id += 1
+    while current_x <width and current_y<height:
+        if current_x==0 and current_y == height -1:
+            break;
+        current_x += 1
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        comp_id += 1
+        if current_y == 0:
+            while current_x > 0:
+                current_x -= 1
+                current_y += 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                comp_id += 1
+            if current_y != height - 1:
+                current_y += 1
+            else:
+                continue
+            #printstr(current_x), str(current_y)
+            freq_comp_id_coord[comp_id] = [current_x,current_y]
+            comp_id += 1
+            while current_y > 0:
+                current_x += 1
+                current_y -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                comp_id += 1
+
+    while current_x <width and current_y<height:
+        current_x += 1
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        comp_id += 1
+        while current_x < width:
+            current_x += 1
+            if current_x < width:
+                current_y -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                comp_id += 1
+
+        current_x -= 1
+        if current_y != height - 1:
+            current_y += 1
+        else:
+             break
+        #printstr(current_x), str(current_y)
+        freq_comp_id_coord[comp_id] = [current_x,current_y]
+        comp_id += 1
+
+        while current_y < height:
+            current_y += 1
+            if current_y < height:
+                current_x -= 1
+                #printstr(current_x), str(current_y)
+                freq_comp_id_coord[comp_id] = [current_x,current_y]
+                comp_id += 1
+        current_y -= 1
+    #printfreq_comp_id_coord
+
 def unit_test():
     test(5)
     test(10)
@@ -411,10 +484,39 @@ def unit_test():
     test(50)
     test(64)
 
+    similarity("R1_blockdct_25.bct","R1_blockdct_5.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_10.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_25.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_50.bct")
+    similarity("R1_blockdct_25.bct","R1_blockdct_64.bct")
+
+def similarity(inputfile, targetfile):
+    global output_file
+    global num_frequency_components
+    output_file = "similarity_test.sm"
+    num_frequency_components = 50
+
+    init_freq_coord_zigzag(block_height, block_width)
+    calculate_dct_matrix()
+
+    input_frame = recreate_frame(1, inputfile)
+    IDCT2D_Tranform(input_frame,1)
+    spacial_input_frame = recreate_frame(1, output_file+"_idct")
+
+    target_frame = recreate_frame(1, targetfile)
+    IDCT2D_Tranform(target_frame,1)
+    spacial_target_frame = recreate_frame(1, output_file+"_idct")
+
+    pairs = izip(spacial_input_frame, spacial_target_frame)
+    dif = sum(abs(c1-c2) for p1,p2 in pairs for c1,c2 in zip(p1,p2))
+    ncomponents = 64 * 64 * 1
+    print "Difference (percentage):", (dif / 255.0 * 100) / ncomponents
+
 def main():
 
     read_input()
     extract_frames()
     # unit_test()
+
 
 main()
