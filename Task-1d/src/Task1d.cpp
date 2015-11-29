@@ -65,21 +65,55 @@ void scan_video()
     int row;
     int col;
     
+    frame_id = 0;
+    
     ofstream fout;
     fout.open(outfile.c_str());
     
     while (video_not_done)
     {
-	video_not_done = video_cap.read(current_frame);
-
+	/* Grabs next frame */
+	if (frame_id == 0)	/* First time through: grab two frames */
+	{
+	    video_not_done = video_cap.read(prev_frame);
+	    video_not_done = video_cap.read(current_frame);
+	    frame_id = 2;
+	}
+	else	/* Set next_frame as prev_frame, and grab new current_frame */
+	{
+	    prev_frame = current_frame;
+	    video_not_done = video_cap.read(current_frame);
+	    frame_id++;
+	}
+	
+	block_coord = 0;
+	diff_comp_id = 0;
+	pixelcount = 0;
+	
 	if (video_not_done)
 	{
-	    
-//	    for (row = 0; row <  ; <#increment#>) {
-//		statements
-//	    }
-	    get_block(current_frame, row, col);
-	    
+	    for (row = 0; row < frame_rows; row += 8)
+	    {
+		for (col = 0; col < frame_cols; col += 8)
+		{
+		    /* At next block: increment block pointer and compare */
+		    
+		    
+		    
+		    
+		    block_coord++;
+		
+		    
+		    fout << frame_id - 1 << "," <<
+			    block_coord << "," <<
+			    diff_comp_id << "," <<
+			    pixelcount << endl;
+		
+		}
+		
+		
+	    }
+
 	    
 	}
 	

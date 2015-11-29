@@ -34,6 +34,9 @@ int pixelcount;
 
 int n;
 VideoCapture video_cap;
+int frame_rows = 64;
+int frame_cols = 64;
+
 
 string filename;
 string outfile;
