@@ -65,6 +65,12 @@ void scan_video()
     int row;
     int col;
     
+    int block_row;
+    int block_col;
+    
+    Mat prev_block;
+    Mat current_block;
+    
     frame_id = 0;
     
     ofstream fout;
@@ -99,16 +105,37 @@ void scan_video()
 		    /* At next block: increment block pointer and compare */
 		    
 		    
+		    prev_block = get_block(prev_frame, col, row);
+		    current_block = get_block(current_frame, col, row);
+
+		    if(VERBOSE)
+		    {
+			printf("\n<%d,%d>\n",frame_id-1, block_coord);
+			for (block_row = 0; block_row < 8; block_row++)
+			{
+			    for (block_col = 0; block_col < 8; block_col++)
+			    {
+				printf("%d,%d ", prev_block.at<uchar>(block_row, block_col), current_block.at<uchar>(block_row, block_col));
+				
+				
+			    }
+			    cout << endl;
+
+			}
+			cout << endl;
+
+		    }
 		    
 		    
-		    block_coord++;
-		
+		    
 		    
 		    fout << frame_id - 1 << "," <<
 			    block_coord << "," <<
 			    diff_comp_id << "," <<
 			    pixelcount << endl;
-		
+		    block_coord++;
+
+		    
 		}
 		
 		
