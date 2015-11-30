@@ -21,6 +21,7 @@ Task 1a:
 Histogram is calculated on every 8*8 block of each frame. Then all the histograms are output to a file in the format <frame_id, block_coord, gray_instance_id, num_pixels>.
 
 Task 1b:
+2D-DCT applied on every 8*8 block of the frame and n most significant wavelet components are written to a file in the form ⟨frame_id,block_id, fred_comp_id ,value⟩ 
 
 Task 1c: 
 2D-DWT applied on every 8*8 block of the frame and n most significant wavelet components are written to a file in the form ⟨frame_id,block_coord,wavelet_comp_id,value⟩ 
@@ -36,7 +37,7 @@ Task 3:
 (a)
 Frame by frame, we calculate its histogram. Also we calculate the matching score between current frame and the given frame. We sort all these scores and find the best 10 matching frames. Then frame ids and matching scores of the 10 is printed and all the frames are shown on the screen.
 
-(b)
+(b) 
 
 (c)
 
