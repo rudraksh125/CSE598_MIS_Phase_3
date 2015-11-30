@@ -122,13 +122,9 @@ def Retrieve(frame_id, bits, filename):
     cv2.destroyAllWindows()
 
 def main():
-    # filename = raw_input("Enter the make of the video file: ")
-    # frame_id = raw_input("Enter the frame id: ")
-    # bits = int(raw_input("Enter number of n:"))
-
-    filename = "R1.mp4"
-    frame_id = 4
-    bits = 4
+    filename = raw_input("Enter the make of the video file: ")
+    frame_id = int(raw_input("Enter the frame id: "))
+    bits = int(raw_input("Enter number of n:"))
 
     Retrieve(frame_id, bits, filename)
 
