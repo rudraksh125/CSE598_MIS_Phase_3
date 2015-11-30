@@ -81,25 +81,29 @@ def extractFrames():
     print("Saved to path {0}".format(outputFilePath))
 
 
+# 1D-DWT using Haar Wavelets
 def haar_1D(data):
   if len(data) == 1:
     return data.copy()
 
-  sum_avg = (data[0::2] + data[1::2]) / np.sqrt(2.)
-  diff_avg = (data[0::2] - data[1::2]) / np.sqrt(2.)
+  sum_avg = (data[0::2] + data[1::2]) / np.sqrt(2.) # Haar Transformation part-1, sum of value / sqrt(2.)
+  diff_avg = (data[0::2] - data[1::2]) / np.sqrt(2.) # Haar Transformation part-2, diff of value / sqrt(2.)
 
   return np.hstack((haar_1D(sum_avg), diff_avg))
 
 
+# 2D-DWT using Haar wavelets
 def DWT_2d_Transformation(frame):
-  h,w = frame.shape
-  rows = np.zeros(frame.shape, dtype=float)
-  for y in range(h):
+  height,width = frame.shape # Rows and columns
+  rows = np.zeros(frame.shape, dtype=float) # initialize
+  # Do haar transformation on all the rows
+  for y in range(height):
     rows[y] = haar_1D(frame[y])
   cols = np.zeros(frame.shape, dtype=float)
-  for x in range(w):
+  # Now do haar transformation on all the columns
+  for x in range(width):
     cols[:,x] = haar_1D(rows[:,x])
-  return cols
+  return cols # return the final transformation
 
 
 # Zig Zag way of saving the data of a matrix.
@@ -135,41 +139,6 @@ def saveToFile(frame_id,transformed_info, length, output_file):
             i += 1
             j -= 1
 
-
-# Zig Zag way of reading the data to a matrix.
-def readFromFile(frame_id,transformed_info, length, input_file, width, height):
-
-    rows = height
-    cols = width
-    index = 1
-    turn = 0
-    i = j = 0
-    transformed_info = np.zeros((rows,cols),dtype=np.float)
-    while i < rows and j < cols and index <= length: # Save the m(length) most significant values
-        # print ("{0} -> ({1},{2})".format(transformed_info[i][j],i,j))
-        # stringToOutput = "{0},{1},{2} \n".format(frame_id,index,transformed_info[i][j])
-        # print stringToOutput
-        inputData  = input_file.readline()
-        index += 1
-        transformed_info[i][j] = float(inputData.split(',')[2]) # Read the data line by line and put to matrix
-        if turn == 0 and i == 0 and j != cols-1:
-            j += 1
-            turn = 1
-        elif turn == 1 and j == 0 and i != rows-1:
-            i += 1
-            turn = 0
-        elif turn == 1 and i == rows-1:
-            j += 1
-            turn = 0
-        elif turn ==0 and j == cols-1:
-            i += 1
-            turn = 1
-        elif turn == 0:
-            i -= 1
-            j += 1
-        elif turn == 1:
-            i += 1
-            j -= 1
 
 # Unit Test Case
 def testCase():

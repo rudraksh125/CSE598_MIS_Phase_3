@@ -23,6 +23,7 @@ def acceptInput():
 def computeEucleadean(input_file):
     global compare_FrameID
     global selectedFrames
+    global totalMatchFrames
 
     FrameInfo = {}
     eucledeanInfo = {}
@@ -67,12 +68,13 @@ def computeEucleadean(input_file):
                 selectedFrames.append(value)
                 count += 1
 
-        if count == 10:
+        if count == totalMatchFrames:
             break
 
 
 def showFrames():
     global selectedFrames
+    global totalMatchFrames
 
     print t2.videoFilePath
     cap = cv2.VideoCapture(t2.videoFilePath)
