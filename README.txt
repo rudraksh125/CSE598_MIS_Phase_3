@@ -37,9 +37,9 @@ Task 3:
 (a)
 Frame by frame, we calculate its histogram. Also we calculate the matching score between current frame and the given frame. We sort all these scores and find the best 10 matching frames. Then frame ids and matching scores of the 10 is printed and all the frames are shown on the screen.
 
-(b) 
+(b) From the .bct file, the 'n' frequency components are read, and inversed into an image, and using manhatten distance the similar images are calculated. The similar images are shown on a grid as an image, along with their frame id and similarity score.
 
-(c)
+(c)  From the .bwt file, all the frames information is extracted for all the m significant wavelet components and using euclidean distance the similar images are calculated. The similar images are shown to the user on the screen and the similarity measure is shown on the console.
 
 (d)
 Frame by frame, we calculate the difference histogram between current frame and the given frame. Based on the difference histogram, we calculate differences between each frame and the given frame. We sort all the differenes and find the smallest 10 values and frames. We print all the ten frames ids and their differences and also show them on screen.
