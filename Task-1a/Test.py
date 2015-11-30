@@ -136,13 +136,23 @@ def main():
     # bits = int(raw_input("Enter number of n:"))
 
     filename = "R1.mp4"
-    frame_id = 10
-    bits = 5
+    frame_id = 4
+    bits = 0
 
     Retrieve(frame_id, bits, filename)
+
+
     # l1 = [1,2,3,4]
     # l2 = [4,3,2,1]
     # print Correlation(l1, l2)
+    # #number of pieces of histogram
+    # hist_pieces = int(pow(2, 1))
+    # #interval of the histogram
+    # interval = 255.0/hist_pieces*2
+    # hist_value = []
+    # for i in range(0, hist_pieces):
+    #     hist_value.append(int(interval*i+interval/2.0-255.0))
+    # print hist_value
 
 if __name__ == '__main__':
     main()
