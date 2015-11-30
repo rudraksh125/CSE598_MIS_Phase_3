@@ -1,10 +1,7 @@
-//
-//  Task1d.hpp
-//  cse408_project01
-//
-//  Created by Matthew Weser on 11/28/15.
-//  Copyright © 2015 mweser. All rights reserved.
-//
+/* Matthew Weser
+ * CSE 408 Phase III
+ * 29 Nov 2015
+ */
 
 #ifndef Task1d_hpp
 #define Task1d_hpp
@@ -47,21 +44,5 @@ bool framebyframe = false;
 
 string filename;
 string outfile;
-
-    // currentBlock
-    // nextBlock
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif /* Task1d_hpp */
