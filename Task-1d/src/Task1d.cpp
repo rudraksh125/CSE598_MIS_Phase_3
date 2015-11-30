@@ -124,17 +124,12 @@ void scan_video()
 	    video_not_done = video_cap.read(prev_frame);
 	    video_not_done = video_cap.read(current_frame);
 	    
-//	    prev_frame = extractGreyscale(prev_frame);
-//	    current_frame = extractGreyscale(current_frame);
-	    
-	    
 	    frame_id = 2;
 	}
 	else	/* Set next_frame as prev_frame, and grab new current_frame */
 	{
 	    prev_frame = current_frame;
 	    video_not_done = video_cap.read(current_frame);
-//	    current_frame = extractGreyscale(current_frame);
 
 	    frame_id++;
 	}
