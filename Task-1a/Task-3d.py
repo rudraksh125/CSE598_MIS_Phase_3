@@ -125,7 +125,7 @@ def Retrieve(frame_id, bits, filename):
 def main():
     filename = raw_input("Enter the make of the video file: ")
     frame_id = int(raw_input("Enter the frame id: "))
-    bits = int(raw_input("Enter number of n:"))
+    bits = int(raw_input("Enter number of n: "))
 
     Retrieve(frame_id, bits, filename)
 
