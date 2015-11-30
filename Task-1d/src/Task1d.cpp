@@ -124,6 +124,11 @@ void scan_video()
 	    video_not_done = video_cap.read(prev_frame);
 	    video_not_done = video_cap.read(current_frame);
 	    
+	    /* Updates 64x64 to newer values if necessary */
+	    frame_cols = video_cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	    frame_rows = video_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+	    
 	    frame_id = 2;
 	}
 	else	/* Set next_frame as prev_frame, and grab new current_frame */
@@ -256,7 +261,7 @@ int main(int argc, char** argv)
     char n_value[16];
     sprintf(n_value, "%d", n);
     
-    num_bins = pow(2,n);
+    num_bins = n;//pow(2,n);
     
     if(!framebyframe) outfile = filename + "_diff_" + n_value + ".dhc";
     if(VERBOSE) printf("Output filename is %s\n", outfile.c_str());
