@@ -116,6 +116,7 @@ def Retrieve(frame_id, bits, filename):
             frame_index+=1
         else:
             break
+    cv2.imshow("original",original_frame)
     for i in range (0, l_result_id.__len__()):
         cv2.imshow(str.format("{0}", i+1),d_frame[l_result_id[i]])
     cv2.waitKey(0)
