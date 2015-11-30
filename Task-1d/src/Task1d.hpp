@@ -8,7 +8,7 @@
 
 #ifndef Task1d_hpp
 #define Task1d_hpp
-#define VERBOSE		1
+#define VERBOSE		0
 
 #include <stdio.h>
 #include <iostream>
@@ -33,9 +33,16 @@ int diff_comp_id;
 int pixelcount;
 
 int n;
+int num_bins;
+double bin_diff;
+int start_median;
+
+int pixelcount_array[256] = {0};
+
 VideoCapture video_cap;
 int frame_rows = 64;
 int frame_cols = 64;
+bool framebyframe = false;
 
 
 string filename;

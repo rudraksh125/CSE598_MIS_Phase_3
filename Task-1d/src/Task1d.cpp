@@ -24,6 +24,37 @@
 
 /******************** UTILITY FUNCTIONS ***********************/
 
+void match_to_bin(int value)
+{
+    int bin_index = 0;
+    int current_floor = -255;
+    
+    while ((value > current_floor) && (bin_index < num_bins))
+    {
+	/* Seeks bin where value is inbetween two floor values */
+	current_floor += bin_diff;
+	bin_index++;
+	
+    }
+    
+    if(VERBOSE) printf("Placing %d into bin %d, floor %d\n", value, bin_index, current_floor);
+    
+    
+    if (value < current_floor)
+    {
+	pixelcount_array[bin_index - 1]++;
+    }
+    else
+    {
+	pixelcount_array[bin_index]++;
+    }
+    
+}
+
+
+
+
+
 /* Function opens video for access 
  * requires a global VideoCapture object named "video_cap" to work
  */
@@ -33,11 +64,11 @@ void openVideo(string filePath){
     
     if(success)
     {
-	cout << "Video opened" << endl;
+	if(VERBOSE)cout << "Video opened" << endl;
     }
     else
     {
-	cout << "Video failed to open" << endl;
+	if(VERBOSE)cout << "Video failed to open" << endl;
     }
 }
 
@@ -48,6 +79,17 @@ Mat get_block(Mat frame, int x, int y)
     Mat subFrame(frame, Rect(x, y, 8, 8));
     return subFrame;
 }
+
+Mat extractGreyscale(Mat frame){
+    
+	// receives a standard frame (assumed to be in the RGB color space), transfers it to the YUV space, and extracts the Y portion of the color space.
+    Mat grayFrame;
+    
+    cvtColor(frame, grayFrame, CV_BGR2GRAY);
+    return grayFrame;
+    
+}
+
 
 
 /************************** IMPLEMENTATION FUNCTIONS ************************/
@@ -64,6 +106,7 @@ void scan_video()
     Mat prev_frame;
     int row;
     int col;
+    int diff_value;
     
     int block_row;
     int block_col;
@@ -71,7 +114,12 @@ void scan_video()
     Mat prev_block;
     Mat current_block;
     
+    
     frame_id = 0;
+    
+    bin_diff = (double) 511/num_bins;
+    start_median = -255 + (double) bin_diff/2;
+    
     
     ofstream fout;
     fout.open(outfile.c_str());
@@ -83,14 +131,24 @@ void scan_video()
 	{
 	    video_not_done = video_cap.read(prev_frame);
 	    video_not_done = video_cap.read(current_frame);
+	    
+//	    prev_frame = extractGreyscale(prev_frame);
+//	    current_frame = extractGreyscale(current_frame);
+	    
+	    
 	    frame_id = 2;
 	}
 	else	/* Set next_frame as prev_frame, and grab new current_frame */
 	{
 	    prev_frame = current_frame;
 	    video_not_done = video_cap.read(current_frame);
+//	    current_frame = extractGreyscale(current_frame);
+
 	    frame_id++;
 	}
+	
+	
+/*********************** DONE GRABBING FRAMES *************************/
 	
 	block_coord = 0;
 	diff_comp_id = 0;
@@ -98,48 +156,58 @@ void scan_video()
 	
 	if (video_not_done)
 	{
+	    /* Scan through blocks */
 	    for (row = 0; row < frame_rows; row += 8)
 	    {
 		for (col = 0; col < frame_cols; col += 8)
 		{
 		    /* At next block: increment block pointer and compare */
-		    
-		    
 		    prev_block = get_block(prev_frame, col, row);
 		    current_block = get_block(current_frame, col, row);
-
-		    if(VERBOSE)
+		    
+		    
+		    if(VERBOSE) printf("\n<%d,%d>\n",frame_id-1, block_coord);
+		    
+		    for (int i = 0; i < 256; i++)
 		    {
-			printf("\n<%d,%d>\n",frame_id-1, block_coord);
-			for (block_row = 0; block_row < 8; block_row++)
-			{
-			    for (block_col = 0; block_col < 8; block_col++)
-			    {
-				printf("%d,%d ", prev_block.at<uchar>(block_row, block_col), current_block.at<uchar>(block_row, block_col));
-				
-				
-			    }
-			    cout << endl;
-
-			}
-			cout << endl;
-
+			/* Clear pixelcount array for next round of block compares */
+			pixelcount_array[i] = 0;
 		    }
 		    
 		    
+		    /* Scan through block pixels to compare */
+		    for (block_row = 0; block_row < 8; block_row++)
+		    {
+			for (block_col = 0; block_col < 8; block_col++)
+			{
+			    if(VERBOSE) printf("%d,%d ", prev_block.at<uchar>(block_row, block_col), current_block.at<uchar>(block_row, block_col));
+			    
+			    diff_value = current_block.at<uchar>(block_row, block_col) - prev_block.at<uchar>(block_row, block_col);
+			    match_to_bin(diff_value);
+			    
+			}
+		    } /* Done scanning single block pixels */
 		    
 		    
-		    fout << frame_id - 1 << "," <<
-			    block_coord << "," <<
-			    diff_comp_id << "," <<
-			    pixelcount << endl;
+		    
+		    
+		    /* Print histogram of selected block diffs */
+		    for (int i = 0; i < num_bins; i++)
+		    {
+			diff_comp_id = start_median + i * bin_diff;
+			pixelcount = pixelcount_array[i];
+			
+			fout << frame_id - 2 << "," <<
+			block_coord << "," <<
+			diff_comp_id << "," <<
+			pixelcount << endl;
+		    }
+		    
 		    block_coord++;
 
 		    
 		}
-		
-		
-	    }
+	    } /* Done scanning all blocks */
 
 	    
 	}
@@ -169,10 +237,21 @@ int main(int argc, char** argv)
     
 	// use special functions from phase 2 to "get" video file frames
     
+    
     if (argc >= 2)
     {
 	filename = argv[1];
 	n = stoi(argv[2]);
+	
+	if (argc == 4) {
+	if (0 == strcmp(argv[3], "-TASK3"))
+	{
+		// output temp.hst
+	    outfile = "temp.hst";
+	    framebyframe = true;
+	}
+	}
+	
     }
     else
     {
@@ -190,12 +269,14 @@ int main(int argc, char** argv)
     char n_value[16];
     sprintf(n_value, "%d", n);
     
-    outfile = filename + "_diff_" + n_value + ".dhc";
+    num_bins = pow(2,n);
+    
+    if(!framebyframe) outfile = filename + "_diff_" + n_value + ".dhc";
     if(VERBOSE) printf("Output filename is %s\n", outfile.c_str());
     
     scan_video();
     
-    
+    printf("Histogram saved as %s\n", outfile.c_str());
     
     return 0;
 }
