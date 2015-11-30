@@ -124,6 +124,12 @@ void scan_video()
 	    video_not_done = video_cap.read(prev_frame);
 	    video_not_done = video_cap.read(current_frame);
 	    
+	    /* Updates 64x64 to newer values if necessary */
+	    frame_cols = video_cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	    frame_rows = video_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+	    
+	    
 //	    prev_frame = extractGreyscale(prev_frame);
 //	    current_frame = extractGreyscale(current_frame);
 	    
