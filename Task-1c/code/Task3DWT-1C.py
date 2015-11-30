@@ -31,8 +31,6 @@ def computeEucleadean(input_file):
     # Read the input file(.dwt file) and deserailized the data line by line and save the dwt values to a dictionary, based on frames
     for line in input_file:
         frameId = int(line.split(',')[0])
-        # blockCoor = line.split(',')[1] +','+line.split(',')[2]
-        # data = np.array([int(line.split(',')[1]),float(line.split(',')[2])])
         data = float(line.split(',')[4])
         if frameId in FrameInfo.keys():
             FrameInfo[frameId].append(data)
@@ -75,12 +73,14 @@ def computeEucleadean(input_file):
 def showFrames():
     global selectedFrames
     global totalMatchFrames
+    global compare_FrameID
 
     print t2.videoFilePath
     cap = cv2.VideoCapture(t2.videoFilePath)
 
     frame_id = 0
     count = 0
+    flag = 0
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -90,11 +90,14 @@ def showFrames():
             if frame_id in selectedFrames:
                 cv2.imshow(str(frame_id), frame)
                 count += 1
+            elif compare_FrameID == frame_id:
+                cv2.imshow(str(frame_id), frame)
+                flag = 1
         else:
             cap.release()
 
         # All the 10 frames chosen are displayed so we exit.
-        if count == totalMatchFrames:
+        if count == totalMatchFrames and flag == 1:
             cap.release()
 
     cv2.waitKey(0)
