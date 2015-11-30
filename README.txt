@@ -25,6 +25,8 @@ Task 1c:
 2D-DWT applied on every 8*8 block of the frame and n most significant wavelet components are written to a file in the form ⟨frame_id,block_coord,wavelet_comp_id,value⟩ 
 
 Task 1d:
+Calculated the difference between corresponding blocks in a frame and the frame following, then created a histogram to map the requency of different ranges of values. Placed into a file of [videofile]_diff_[n].dhc in the format <frame_id, block_coord, diff_comp_id, pixelcount>.
+
 
 Task 2:
 2D-DWT applied on every frame of the video and n most significant wavelet components of every frame is written to a file in the form ⟨frame_id,block_coord,wavelet_comp_id,value⟩ 

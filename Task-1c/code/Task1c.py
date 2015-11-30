@@ -34,9 +34,14 @@ def acceptInput():
 
     videoFileName = raw_input('Enter the video file name <v>: ')
     videoFilePath = path+videoFileName
-    num_components = int(raw_input("Enter number of significant wavelet components: "))
+    num_components = 9
+    while num_components > 8:
+        num_components = int(raw_input("Enter number of significant wavelet components[must be less than 9]: "))
+        if num_components < 9:
+            break
+
     outputFilePath = videoFilePath.rsplit(".")[0]
-    outputFilePath = "{0}_framedwt_{1}.fwt".format(outputFilePath,num_components)
+    outputFilePath = "{0}_framedwt_{1}.bwt".format(outputFilePath,num_components)
     extractFrames()
 
 # Extracts Frames and Saves the partial frame information
@@ -46,11 +51,17 @@ def extractFrames():
     global frame_height
     global num_components
     global outputFilePath
-    # videoFilePath = '/Users/rahulkrsna/Documents/ASU_Fall2015/MIS/HW-3/CSE598_MIS_Phase_3/Task-2/R1.mp4'
+    # videoFilePath = '/Users/rahulkrsna/Documents/ASU_Fall2015/MIS/HW-3/CSE598_MIS_Phase_3/Task-1c/R1.mp4'
 
     cap = cv2.VideoCapture(videoFilePath)
     frame_width = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
+
+    # Write frame information to the file
+    output_file = open(outputFilePath, 'a') # open the file
+    #Save the Frame Co-ordinates to the file
+    FrameCoor = "Height : {0} , Width : {1} , Wavelets : {2}\n".format(frame_height, frame_width, num_components)
+    output_file.write(FrameCoor)
 
     frame_id = 0
     while cap.isOpened():
@@ -62,13 +73,17 @@ def extractFrames():
             y,u,v = cv2.split(yuvImage)
             input = y.astype(np.float)
             # DWT_2d_Transformation(input,frame_id, frame_height, frame_width) # Apply 2d-DWT Transformation
-            output = DWT_2d_Transformation(input)
-            saveToFile(frame_id,output, num_components)
+
+            for i in range(0,frame_height,8):
+                for j in range(0,frame_width,8):
+                    output = DWT_2d_Transformation(input[i:i+8,j:j+8])
+                    saveToFile(frame_id,i,j,output, num_components,output_file)
             # if frame_id == 1:
             #     cap.release()
         else:
             cap.release()
 
+    output_file.close() #Close the file
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     print("Saved to path {0}".format(outputFilePath))
 
@@ -95,11 +110,7 @@ def DWT_2d_Transformation(frame):
 
 
 # Zig Zag way of saving the data of a matrix.
-def saveToFile(frame_id,transformed_info, length):
-
-    global outputFilePath
-
-    output_file = open(outputFilePath, 'a') # open the file
+def saveToFile(frame_id,coord_x, coord_y,transformed_info, length, output_file):
 
     rows,cols = transformed_info.shape # # of rows and columns
     index = 1
@@ -107,7 +118,7 @@ def saveToFile(frame_id,transformed_info, length):
     i = j = 0
     while i < rows and j < cols and index <= length: # Save the m(length) most significant values
         # print ("{0} -> ({1},{2})".format(transformed_info[i][j],i,j))
-        stringToOutput = "{0},{1},{2} \n".format(frame_id,index,transformed_info[i][j])
+        stringToOutput = "{0},{1},{2},{3},{4} \n".format(frame_id,coord_x,coord_y,index,transformed_info[i][j])
         # print stringToOutput
         output_file.write(stringToOutput)
         index += 1
@@ -131,7 +142,6 @@ def saveToFile(frame_id,transformed_info, length):
             i += 1
             j -= 1
 
-    output_file.close()
 
 # Unit Test Case
 def testCase():
