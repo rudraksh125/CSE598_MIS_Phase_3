@@ -10,7 +10,7 @@ def Quantizing(cap, bits, filename):
     hist_value = []
     for i in range(0, hist_pieces):
         hist_value.append(int(interval*i+interval/2.0))
-    frame_index = 1
+    frame_index = 0
     while(cap.isOpened):
         ret, frame = cap.read()
         if(ret):
