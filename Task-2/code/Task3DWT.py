@@ -9,6 +9,7 @@ import collections
 compare_FrameID = 0
 videoFileName = ""
 selectedFrames = []
+totalMatchFrames = 10
 
 def acceptInput():
     global videoFileName
@@ -80,6 +81,7 @@ def inverseDWT_2D(inputData):
 def computeEucleadean(input_file):
     global compare_FrameID
     global selectedFrames
+    global totalMatchFrames
 
     FrameInfo = {}
     eucledeanInfo = {}
@@ -101,7 +103,7 @@ def computeEucleadean(input_file):
     # Compute Similarity = 1 / (1+ eucledean_distance)
     for keys,values in FrameInfo.items():
         distance = np.linalg.norm(np.array(keyFrame) - np.array(values))
-        similarity = 1. / (1. + distance) # Similarity = 1 / (1+eucledian_distance)
+        similarity = 1. / (1. + distance) # Similarity = 1 / (1 + eucledian_distance)
         if similarity in eucledeanInfo.keys():
             eucledeanInfo[similarity].append(keys)
         else:
@@ -112,20 +114,24 @@ def computeEucleadean(input_file):
 
     # Print the 10 most similar frames to the chosen frame
     count = 0
+    print('Similarity :: 1 :: very high similarity')
+    print('Similarity :: 0 :: very low similarity')
+    print('Similarity     - FrameId')
     for keys,values in od_Similarities.items():
         for value in values:
             if compare_FrameID != value:
-                print keys, value
+                print ("{0} - {1}".format(keys, value))
                 print ""
                 selectedFrames.append(value)
                 count += 1
 
-        if count == 10:
+        if count == totalMatchFrames:
             break
 
 
 def showFrames():
     global selectedFrames
+    global totalMatchFrames
 
     print t2.videoFilePath
     cap = cv2.VideoCapture(t2.videoFilePath)
@@ -145,7 +151,7 @@ def showFrames():
             cap.release()
 
         # All the 10 frames chosen are displayed so we exit.
-        if count == 10:
+        if count == totalMatchFrames:
             cap.release()
 
     cv2.waitKey(0)
