@@ -5,7 +5,7 @@ import numpy as np
 
 def Quantizing(cap, bits, filename):
     outfile = open("{0}_hist_{1}.hst".format(filename.split(".")[0], bits),'w')
-    hist_pieces = int(pow(2, bits))
+    hist_pieces = int(bits)
     interval = 255.0/hist_pieces
     hist_value = []
     for i in range(0, hist_pieces):
@@ -26,6 +26,7 @@ def Quantizing(cap, bits, filename):
                         gray_instance.append(0)
                     for k in range(0, 8):
                         for l in range(0, 8):
+                            #each value is affliated to a column in the histogram and we record number of each column in the histogram
                             value = int(yuv[i*8+k,j*8+l])
                             gray_index = int(value/interval)
                             gray_instance[gray_index] = gray_instance[gray_index]+1

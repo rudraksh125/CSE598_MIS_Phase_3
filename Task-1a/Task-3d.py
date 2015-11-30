@@ -4,9 +4,9 @@ import numpy as np
 
 def Histogram(bits, yuv):
     #number of pieces of histogram
-    hist_pieces = int(pow(2, bits))
+    hist_pieces = int(bits)
     #interval of the histogram
-    interval = 255.0/hist_pieces
+    interval = 255.0*2/hist_pieces
 
     gray_instance = []
     for m in range(0, hist_pieces):
@@ -15,44 +15,27 @@ def Histogram(bits, yuv):
     for k in range(0, rows):
             for l in range(0, cols):
                 value = int(yuv[k,l])
-                gray_index = int(value/interval)
+                gray_index = int((value+255.5)/interval)
                 gray_instance[gray_index] = gray_instance[gray_index]+1
     return  gray_instance
 
-def Correlation(hist_1, hist_2):
-    avg_1 = 0.0
-    avg_2 = 0.0
-    length = hist_1.__len__()
-    for i in range (0, length):
-        avg_1 += hist_1[i]
-        avg_2 += hist_2[i]
-    avg_1 = avg_1/float(length)
-    avg_2 = avg_2/float(length)
-
-    square_sum1 = 0.0
-    square_sum2 = 0.0
-    numerator = 0.0
-    for i in range(0, length):
-        square_sum1+=(float(hist_1[i]) - avg_1)*(float(hist_1[i]) - avg_1)
-        square_sum2+=(float(hist_2[i]) - avg_2)*(float(hist_2[i]) - avg_2)
-        numerator+=(float(hist_1[i]) - avg_1)*(float(hist_2[i] - avg_2))
-    denominator = pow(square_sum1*square_sum2, 0.5)
-    return numerator/denominator
+def GetMatchingScore(hist_value, gray_instance):
+    score = 0.0
+    for i in range (0, hist_value.__len__()):
+        score+=abs(hist_value[i]*gray_instance[i])
+    return score
 
 def Retrieve(frame_id, bits, filename):
     #number of pieces of histogram
-    hist_pieces = int(pow(2, bits))
+    hist_pieces = int(bits)
     #interval of the histogram
-    interval = 255.0/hist_pieces
+    interval = 255.0/hist_pieces*2
     #list to store gray_instance_id
     hist_value = []
     for i in range(0, hist_pieces):
-        hist_value.append(int(interval*i+interval/2.0))
+        hist_value.append(int(interval*i+interval/2.0-255.0))
 
     original_frame = None
-    original_gray_instance = []
-    for m in range(0, hist_pieces):
-            original_gray_instance.append(0)
     cap = cv2.VideoCapture(filename)
     frame_index = 0
     while(cap.isOpened):
@@ -60,16 +43,9 @@ def Retrieve(frame_id, bits, filename):
         if(ret):
             if(frame_index == frame_id):
                 original_frame = frame
-                yuv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
-                yuv = yuv[:,:,0]
-                original_gray_instance = Histogram(bits, yuv)
                 break
             else:
                 frame_index+=1
-
-    # print original_gray_instance
-    # cv2.imshow("Original frame", frame)
-    # cv2.waitKey()
 
     l_frame_id = []
     l_score = []
@@ -78,19 +54,33 @@ def Retrieve(frame_id, bits, filename):
     while(cap.isOpened):
         ret, frame = cap.read()
         if(ret):
-            yuv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
-            yuv = yuv[:,:,0]
-            gray_instance = Histogram(bits, yuv)
-            score = Correlation(gray_instance, original_gray_instance)
-            l_frame_id.append(frame_index)
-            l_score.append(score)
+            if(frame_index == frame_id):
+                l_frame_id.append(frame_index)
+                l_score.append(0)
+            else:
+                yuv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
+                yuv = yuv[:,:,0]
+
+                original_yuv = cv2.cvtColor(original_frame, cv2.COLOR_BGR2YUV)
+                original_yuv = original_yuv[:,:,0]
+
+                rows, cols = yuv.shape
+
+                diff = np.ndarray((rows,cols), dtype = float, order = 'F')
+                for i in range (0, rows):
+                    for j in range(0, cols):
+                        diff[i, j] = float(yuv[i,j]) - float(original_yuv[i,j])
+                gray_instance = Histogram(bits, diff)
+                score = GetMatchingScore(hist_value,gray_instance)
+                l_frame_id.append(frame_index)
+                l_score.append(score)
             frame_index+=1
         else:
             break
 
     for i in range (0, l_frame_id.__len__()-1):
         for j in range (i+1, l_frame_id.__len__()):
-            if(l_score[i]<l_score[j]):
+            if(l_score[i]>l_score[j]):
                 x = l_score[i]
                 l_score[i] = l_score[j]
                 l_score[j] = x
@@ -126,33 +116,18 @@ def Retrieve(frame_id, bits, filename):
             frame_index+=1
         else:
             break
+    cv2.imshow("original",original_frame)
     for i in range (0, l_result_id.__len__()):
         cv2.imshow(str.format("{0}", i+1),d_frame[l_result_id[i]])
-        cv2.waitKey()
-        cv2.destroyAllWindows()
-def main():
-    # filename = raw_input("Enter the make of the video file: ")
-    # frame_id = raw_input("Enter the frame id: ")
-    # bits = int(raw_input("Enter number of n:"))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-    filename = "R1.mp4"
-    frame_id = 4
-    bits = 0
+def main():
+    filename = raw_input("Enter the make of the video file: ")
+    frame_id = int(raw_input("Enter the frame id: "))
+    bits = int(raw_input("Enter number of n:"))
 
     Retrieve(frame_id, bits, filename)
-
-
-    # l1 = [1,2,3,4]
-    # l2 = [4,3,2,1]
-    # print Correlation(l1, l2)
-    # #number of pieces of histogram
-    # hist_pieces = int(pow(2, 1))
-    # #interval of the histogram
-    # interval = 255.0/hist_pieces*2
-    # hist_value = []
-    # for i in range(0, hist_pieces):
-    #     hist_value.append(int(interval*i+interval/2.0-255.0))
-    # print hist_value
 
 if __name__ == '__main__':
     main()

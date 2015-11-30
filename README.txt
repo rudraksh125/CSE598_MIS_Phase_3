@@ -18,6 +18,7 @@ Execution:
 
 Explanation:
 Task 1a:
+Histogram is calculated on every 8*8 block of each frame. Then all the histograms are output to a file in the format <frame_id, block_coord, gray_instance_id, num_pixels>.
 
 Task 1b:
 
@@ -32,4 +33,12 @@ Task 2:
 2D-DWT applied on every frame of the video and n most significant wavelet components of every frame is written to a file in the form ⟨frame_id,block_coord,wavelet_comp_id,value⟩ 
 
 Task 3:
+(a)
+Frame by frame, we calculate its histogram. Also we calculate the matching score between current frame and the given frame. We sort all these scores and find the best 10 matching frames. Then frame ids and matching scores of the 10 is printed and all the frames are shown on the screen.
 
+(b)
+
+(c)
+
+(d)
+Frame by frame, we calculate the difference histogram between current frame and the given frame. Based on the difference histogram, we calculate differences between each frame and the given frame. We sort all the differenes and find the smallest 10 values and frames. We print all the ten frames ids and their differences and also show them on screen.

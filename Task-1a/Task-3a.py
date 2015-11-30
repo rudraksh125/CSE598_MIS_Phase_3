@@ -4,7 +4,7 @@ import numpy as np
 
 def Histogram(bits, yuv):
     #number of pieces of histogram
-    hist_pieces = int(pow(2, bits))
+    hist_pieces = int(bits)
     #interval of the histogram
     interval = 255.0/hist_pieces
 
@@ -37,11 +37,14 @@ def Correlation(hist_1, hist_2):
         square_sum2+=(float(hist_2[i]) - avg_2)*(float(hist_2[i]) - avg_2)
         numerator+=(float(hist_1[i]) - avg_1)*(float(hist_2[i] - avg_2))
     denominator = pow(square_sum1*square_sum2, 0.5)
-    return numerator/denominator
+    if(denominator == 0.0):
+        return 0
+    else:
+        return numerator/denominator
 
 def Retrieve(frame_id, bits, filename):
     #number of pieces of histogram
-    hist_pieces = int(pow(2, bits))
+    hist_pieces = int(bits)
     #interval of the histogram
     interval = 255.0/hist_pieces
     #list to store gray_instance_id
@@ -122,15 +125,16 @@ def Retrieve(frame_id, bits, filename):
             frame_index+=1
         else:
             break
+    cv2.imshow("original",original_frame)
     for i in range (0, l_result_id.__len__()):
         cv2.imshow(str.format("{0}", i+1),d_frame[l_result_id[i]])
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
 def main():
     filename = raw_input("Enter the make of the video file: ")
-    frame_id = raw_input("Enter the frame id: ")
-    bits = int(raw_input("Enter number of n:"))
+    frame_id = int(raw_input("Enter the frame id: "))
+    bits = int(raw_input("Enter number of n: "))
 
     Retrieve(frame_id, bits, filename)
 
