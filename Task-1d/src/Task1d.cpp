@@ -261,7 +261,7 @@ int main(int argc, char** argv)
     char n_value[16];
     sprintf(n_value, "%d", n);
     
-    num_bins = pow(2,n);
+    num_bins = n;//pow(2,n);
     
     if(!framebyframe) outfile = filename + "_diff_" + n_value + ".dhc";
     if(VERBOSE) printf("Output filename is %s\n", outfile.c_str());
