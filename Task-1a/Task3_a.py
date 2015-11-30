@@ -67,7 +67,6 @@ def Retrieve(frame_id, bits, filename):
             else:
                 frame_index+=1
 
-
     l_frame_id = []
     l_score = []
     cap = cv2.VideoCapture(filename)
