@@ -8,6 +8,7 @@ import collections
 
 compare_FrameID = 0
 videoFileName = ""
+selectedFrames = []
 
 def acceptInput():
     global videoFileName
@@ -78,6 +79,7 @@ def inverseDWT_2D(inputData):
 # Compute Eucleadean Distance between every vector and the vector of the chosen frame
 def computeEucleadean(input_file):
     global compare_FrameID
+    global selectedFrames
 
     FrameInfo = {}
     eucledeanInfo = {}
@@ -115,11 +117,39 @@ def computeEucleadean(input_file):
             if compare_FrameID != value:
                 print keys, value
                 print ""
+                selectedFrames.append(value)
                 count += 1
 
         if count == 10:
             break
 
+
+def showFrames():
+    global selectedFrames
+
+    print t2.videoFilePath
+    cap = cv2.VideoCapture(t2.videoFilePath)
+
+    frame_id = 0
+    count = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        if ret == True:
+            frame_id += 1
+            # If the current frame is the frame chosen display the frame
+            if frame_id in selectedFrames:
+                cv2.imshow(str(frame_id), frame)
+                count += 1
+        else:
+            cap.release()
+
+        # All the 10 frames chosen are displayed so we exit.
+        if count == 10:
+            cap.release()
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 def main():
     global videoFileName
@@ -127,20 +157,19 @@ def main():
     t2.main() # Call the main function of task-2
 
     acceptInput() # Accepte User Input
-
     # Open the input file to read
     input_file = open(videoFileName, 'r')
     frameInfo = input_file.readline()
     rows = int(frameInfo.split(',')[0].split(':')[1].strip(' '))
     cols = int(frameInfo.split(',')[1].split(':')[1].strip(' '))
     wavelets = int(frameInfo.split((','))[2].split(':')[1].strip(' '))
-
-    #Compute Eculedean Distnace and similarities
-    computeEucleadean(input_file)
-
+    computeEucleadean(input_file) #Compute Eculedean Distnace and similarities
     input_file.close() #close the file
 
+    # Output
+    showFrames()
 
-# /Users/rahulkrsna/Documents/ASU_Fall2015/MIS/HW-3/CSE598_MIS_Phase_3/Task-2/code/R1_framedwt_10.fwt'
+
+# /Users/rahulkrsna/Documents/ASU_Fall2015/MIS/HW-3/CSE598_MIS_Phase_3/Task-2/code/R1_framedwt_10.fwt
 if __name__ == '__main__':
     main()
