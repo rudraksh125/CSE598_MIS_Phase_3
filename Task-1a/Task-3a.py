@@ -16,6 +16,8 @@ def Histogram(bits, yuv):
             for l in range(0, cols):
                 value = int(yuv[k,l])
                 gray_index = int(value/interval)
+                if(gray_index == gray_instance.__len__()):
+                    gray_index-=1
                 gray_instance[gray_index] = gray_instance[gray_index]+1
     return  gray_instance
 

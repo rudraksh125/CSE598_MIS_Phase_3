@@ -29,6 +29,8 @@ def Quantizing(cap, bits, filename):
                             #each value is affliated to a column in the histogram and we record number of each column in the histogram
                             value = int(yuv[i*8+k,j*8+l])
                             gray_index = int(value/interval)
+                            if(gray_index == gray_instance.__len__()):
+                                gray_index-=1
                             gray_instance[gray_index] = gray_instance[gray_index]+1
                     block_index = i*block_col+j
                     for m in range(0, hist_pieces):
