@@ -80,6 +80,7 @@ def Retrieve(frame_id, bits, filename):
         else:
             break
 
+    # sort
     for i in range (0, l_frame_id.__len__()-1):
         for j in range (i+1, l_frame_id.__len__()):
             if(l_score[i]>l_score[j]):
