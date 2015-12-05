@@ -43,10 +43,6 @@ void match_to_bin(int value)
     
 }
 
-
-
-
-
 /* Function opens video for access 
  * requires a global VideoCapture object named "video_cap" to work
  */
@@ -200,21 +196,10 @@ void scan_video()
 		    
 		}
 	    } /* Done scanning all blocks */
-
-	    
 	}
-	
-	
     }
-    
-    
-    
-}
-
-
-
-
-
+    fout.close();
+} /* Done scanning video */
 
 /* Function main:
  * 1. while(!EOF)
@@ -235,13 +220,14 @@ int main(int argc, char** argv)
 	filename = argv[1];
 	n = stoi(argv[2]);
 	
-	if (argc == 4) {
-	if (0 == strcmp(argv[3], "-TASK3"))
+	if (argc == 4) 
 	{
+		if (0 == strcmp(argv[3], "-TASK3"))
+		{
 		// output temp.hst
-	    outfile = "temp.hst";
-	    framebyframe = true;
-	}
+	    	outfile = "temp.hst";
+	    	framebyframe = true;
+		}
 	}
 	
     }
@@ -272,16 +258,3 @@ int main(int argc, char** argv)
     
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
